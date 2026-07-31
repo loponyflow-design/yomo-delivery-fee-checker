@@ -301,6 +301,26 @@
     return ZONES.length - 1;
   }
 
+  // เติมที่อยู่คร่าวๆ ให้อัตโนมัติจากพิกัด GPS (reverse geocode) ผ่าน BigDataCloud
+  // ฟรี ไม่ต้องมี API key แต่เป็นบริการภายนอก — เติมได้แค่ระดับตำบล/อำเภอ/จังหวัด
+  // ไม่รู้บ้านเลขที่/จุดสังเกต ลูกค้าอาจต้องเติมส่วนนั้นเพิ่มเอง
+  function reverseGeocode(lat, lng) {
+    var url = "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" +
+      lat + "&longitude=" + lng + "&localityLanguage=th";
+    return fetch(url).then(function (res) { return res.json(); });
+  }
+
+  function addressFromGeocode(data) {
+    var parts = [data.locality, data.city, data.principalSubdivision].filter(Boolean);
+    // ตัดชื่อที่ซ้ำกันออก (บางพื้นที่ locality กับ city เป็นชื่อเดียวกัน)
+    var seen = {};
+    var unique = [];
+    parts.forEach(function (p) {
+      if (!seen[p]) { seen[p] = true; unique.push(p); }
+    });
+    return unique.join(" ");
+  }
+
   locateBtn.addEventListener("click", function () {
     if (!navigator.geolocation) {
       geoStatus.textContent = "อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง กรุณาเลือกระยะทางเองด้านล่าง";
@@ -310,13 +330,29 @@
     geoStatus.textContent = "กำลังค้นหาตำแหน่ง...";
     navigator.geolocation.getCurrentPosition(
       function (pos) {
-        var straightKm = haversineKm(SHOP_LAT, SHOP_LNG, pos.coords.latitude, pos.coords.longitude);
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var straightKm = haversineKm(SHOP_LAT, SHOP_LNG, lat, lng);
         var estKm = straightKm * ROAD_FACTOR;
         var idx = zoneIndexForKm(estKm);
         zoneSelect.value = idx;
-        geoStatus.textContent = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม. — เลือกช่วง \"" + ZONES[idx].label + "\" ให้อัตโนมัติ (ตรวจสอบอีกครั้งได้ด้านล่าง)";
+        var distMsg = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม. — เลือกช่วง \"" + ZONES[idx].label + "\" ให้อัตโนมัติ";
+        geoStatus.textContent = distMsg + " (กำลังค้นหาที่อยู่...)";
         locateBtn.disabled = false;
         render();
+
+        reverseGeocode(lat, lng).then(function (data) {
+          var guess = addressFromGeocode(data);
+          if (guess && !addressInput.value.trim()) {
+            addressInput.value = guess;
+            geoStatus.textContent = distMsg + " • เติมที่อยู่คร่าวๆ ให้แล้ว เพิ่มบ้านเลขที่/จุดสังเกตได้ถ้าต้องการ";
+            updateSummary(currentZone());
+          } else {
+            geoStatus.textContent = distMsg;
+          }
+        }).catch(function () {
+          geoStatus.textContent = distMsg;
+        });
       },
       function () {
         geoStatus.textContent = "ไม่สามารถระบุตำแหน่งได้ กรุณาเลือกระยะทางเองด้านล่าง";
