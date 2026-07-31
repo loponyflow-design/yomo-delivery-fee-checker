@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เช็คค่าส่ง — YOMO ข้าวไข่ลูกเขย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#BF1E2E; --ink:#231F20; --white:#FFFFFF;
+    --paper:#faf9f8; --line:rgba(35,31,32,0.14); --red-soft:#fbe6e7;
+    --green:#1c6e4a; --green-soft:#e6f2ec; --badge:#F4B942; --badge-soft:#FFF6DD;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink); color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif;
+    min-height:100vh; display:flex; justify-content:center;
+    padding:18px 12px;
+  }
+  .card{
+    width:100%; max-width:440px;
+    background:var(--paper);
+    border:4px solid var(--ink);
+    border-radius:28px;
+    overflow:hidden;
+    position:relative;
+  }
+  header{
+    background:var(--red); color:var(--white);
+    padding:30px 22px 34px;
+    position:relative;
+    border-bottom:4px solid var(--ink);
+    overflow:visible;
+  }
+  header .cart-icon{
+    font-size:34px; line-height:1; margin-bottom:10px; display:block;
+    filter:drop-shadow(2px 2px 0 rgba(0,0,0,0.25));
+  }
+  .eyebrow{
+    font-family:'Kanit',sans-serif; font-weight:500; font-size:13px;
+    color:rgba(255,255,255,0.75); margin:0 0 4px; letter-spacing:.02em;
+  }
+  h1{
+    font-family:'Kanit',sans-serif; font-weight:600; font-size:27px; line-height:1.35;
+    margin:0 0 8px; color:var(--white); letter-spacing:0;
+  }
+  .sub{ font-family:'Sarabun',sans-serif; font-weight:400; font-size:14.5px; color:rgba(255,255,255,0.88); margin:0; max-width:32ch; line-height:1.5; }
+
+  .badge{
+    position:absolute; top:-6px; right:14px;
+    background:var(--badge); color:var(--ink);
+    font-family:'Kanit',sans-serif; font-weight:600; font-size:11.5px;
+    width:78px; height:78px; display:flex; align-items:center; justify-content:center;
+    text-align:center; transform:rotate(14deg);
+    clip-path:polygon(50% 0%,61% 18%,80% 8%,80% 29%,100% 35%,86% 50%,100% 65%,80% 71%,80% 92%,61% 82%,50% 100%,39% 82%,20% 92%,20% 71%,0% 65%,14% 50%,0% 35%,20% 29%,20% 8%,39% 18%);
+    border:2px solid var(--ink);
+    line-height:1.15;
+  }
+
+  main{ padding:20px 20px 26px; }
+
+  section{
+    background:var(--white); border:2.5px solid var(--ink); border-radius:16px;
+    padding:16px 16px 18px; margin-bottom:14px;
+  }
+  .step-label{
+    font-family:'Kanit',sans-serif; font-weight:500; font-size:12px; letter-spacing:.03em;
+    color:var(--red); margin:0 0 10px;
+  }
+  label.field-label{ display:block; font-family:'Kanit',sans-serif; font-weight:500; font-size:13px; color:rgba(35,31,32,0.65); margin:12px 0 5px; }
+  label.field-label:first-of-type{ margin-top:0; }
+  textarea, input[type=tel], input[type=text], input[type=number], select{
+    width:100%; border:2px solid var(--ink); border-radius:10px;
+    padding:11px 12px; font-size:15px; font-family:'Sarabun',sans-serif;
+    background:var(--paper); color:var(--ink); outline:none;
+  }
+  textarea{ resize:vertical; min-height:64px; }
+  textarea:focus, input:focus, select:focus{ border-color:var(--red); }
+
+  button.locate{
+    width:100%; padding:13px 14px; border-radius:10px; border:2.5px solid var(--ink);
+    background:var(--badge); color:var(--ink);
+    font-family:'Kanit',sans-serif; font-weight:500; font-size:15px; cursor:pointer;
+    margin-bottom:4px;
+  }
+  button.locate:active{ transform:translateY(1px); }
+  button.locate:disabled{ opacity:.5; cursor:default; }
+  .geo-status{ font-size:11.5px; color:rgba(35,31,32,0.55); min-height:15px; margin:6px 0 12px; }
+
+  /* headline result: the one big number that answers "will I pay, how much" */
+  .headline-box{
+    border-radius:16px; padding:22px 16px; margin-bottom:14px;
+    background:var(--ink); text-align:center; border:2.5px solid var(--ink);
+  }
+  .headline-box .k{
+    font-family:'Sarabun',sans-serif; font-weight:400; font-size:13px;
+    color:rgba(255,255,255,0.6); margin:0 0 6px;
+  }
+  .headline-box .v{
+    font-family:'Kanit',sans-serif; font-weight:700; font-size:32px; color:var(--badge); margin:0;
+  }
+  .headline-box.free .v{ color:#7CE0A8; }
+  .headline-box .sub2{
+    font-family:'Sarabun',sans-serif; font-weight:400; font-size:12.5px;
+    color:rgba(255,255,255,0.7); margin:8px 0 0;
+  }
+
+  /* option cards: the two fulfillment choices */
+  .options{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  .opt{
+    border:2.5px solid var(--ink); border-radius:14px; padding:14px 40px 14px 14px;
+    cursor:pointer; background:var(--white); transition:background .15s ease, transform .1s ease;
+    position:relative;
+  }
+  .opt.selected{ background:var(--red); }
+  .opt.selected .title, .opt.selected .desc{ color:var(--white); }
+  .opt .top-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; gap:10px; }
+  .opt .tag{
+    font-family:'Kanit',sans-serif; font-weight:500; font-size:11px;
+    color:var(--ink); background:var(--badge);
+    padding:2px 9px; border-radius:20px; display:inline-block; margin-bottom:6px;
+    border:1.5px solid var(--ink);
+  }
+  .opt .title{ font-family:'Kanit',sans-serif; font-weight:500; font-size:16px; }
+  .opt .price{ font-family:'Kanit',sans-serif; font-weight:700; font-size:17px; color:var(--red); white-space:nowrap; }
+  .opt.selected .price{ color:var(--white); }
+  .opt .price.free{ color:var(--green); }
+  .opt.selected .price.free{ color:var(--badge); }
+  .opt .desc{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; }
+  .opt input[type=radio]{ position:absolute; opacity:0; }
+  .opt.selected::after{
+    content:"✓"; position:absolute; top:10px; right:12px;
+    width:22px; height:22px; border-radius:50%; background:var(--badge); color:var(--ink);
+    font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--ink);
+  }
+
+  .warn-box{
+    display:flex; gap:8px; align-items:flex-start;
+    margin-top:2px; margin-bottom:14px; padding:11px 12px; border-radius:10px;
+    background:var(--badge-soft); border:2px dashed var(--ink);
+    font-size:12.5px; color:rgba(35,31,32,0.8); line-height:1.5;
+  }
+
+  .cta-row{ display:flex; flex-direction:column; gap:10px; }
+  .cta{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--red); color:var(--white); font-weight:600; font-size:16px;
+    padding:16px 10px; border-radius:12px; border:2.5px solid var(--ink); cursor:pointer;
+    font-family:'Kanit',sans-serif;
+  }
+  .cta:active{ transform:translateY(1px); }
+  .cta.secondary{ background:var(--white); color:var(--ink); font-weight:500; font-size:15px; padding:13px 10px; }
+  .cta:disabled{ opacity:.45; cursor:default; }
+
+  .note-preview{
+    margin-top:10px; padding:11px 12px; border-radius:10px;
+    background:var(--white); border:2px dashed var(--ink);
+    font-family:'JetBrains Mono',monospace; font-size:12px; white-space:pre-line;
+    color:rgba(35,31,32,0.7); display:none;
+  }
+  .note-preview.show{ display:block; }
+
+  .copy-toast{ font-size:12px; text-align:center; color:var(--green); margin-top:8px; min-height:16px; font-weight:600; }
+  .required-hint{ font-size:12px; text-align:center; color:var(--red); margin-top:8px; min-height:16px; }
+  .footnote{ font-size:11px; color:rgba(35,31,32,0.42); text-align:center; margin-top:18px; line-height:1.6; }
+  .hidden{ display:none !important; }
+
+  input:focus-visible, textarea:focus-visible, select:focus-visible, .cta:focus-visible, .opt:focus-visible{
+    outline:3px solid var(--badge); outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <span class="badge">เช็ค<br>ค่าส่ง</span>
+    <span class="cart-icon">🛒</span>
+    <p class="eyebrow">YOMO ข้าวไข่ลูกเขย</p>
+    <h1>บ้านคุณ<br>ต้องเสียค่าส่งไหม?</h1>
+    <p class="sub">เลือกที่อยู่ของคุณ แล้วดูค่าส่งก่อนตัดสินใจสั่งได้เลย ไม่ต้องเดา</p>
+  </header>
+
+  <main>
+    <section>
+      <p class="step-label">ที่อยู่จัดส่ง</p>
+
+      <button type="button" class="locate" id="locateBtn">📍 ใช้ตำแหน่งปัจจุบัน</button>
+      <div class="geo-status" id="geoStatus"></div>
+
+      <label class="field-label" for="zone">ระยะทางโดยประมาณจากร้าน</label>
+      <select id="zone"></select>
+
+      <label class="field-label" for="addressInput">ที่อยู่ / บ้านเลขที่ / ซอย / จุดสังเกต (ไม่บังคับ)</label>
+      <textarea id="addressInput" placeholder="เช่น 123/45 หมู่ 5 ใกล้วัด"></textarea>
+    </section>
+
+    <div class="headline-box" id="headlineBox">
+      <p class="k" id="headlineK">ค่าส่งของช่วงนี้</p>
+      <p class="v" id="headlineV">-</p>
+      <p class="sub2" id="headlineSub">-</p>
+    </div>
+
+    <div class="options" id="optionsBox"></div>
+
+    <div class="warn-box hidden" id="farWarn">
+      <span>ℹ️</span>
+      <span id="farWarnText"></span>
+    </div>
+
+    <section>
+      <p class="step-label">ข้อมูลติดต่อ (ใช้ตอนคัดลอกสรุป)</p>
+
+      <label class="field-label" for="nameInput">ชื่อลูกค้า</label>
+      <input type="text" id="nameInput" placeholder="ชื่อ-นามสกุล / ชื่อเล่น">
+
+      <label class="field-label" for="phoneInput">เบอร์โทรติดต่อ</label>
+      <input type="tel" id="phoneInput" placeholder="08X-XXX-XXXX">
+    </section>
+
+    <div class="cta-row">
+      <a class="cta" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
+      <button class="cta secondary" id="copyBtn">คัดลอกไปวางใน Note</button>
+    </div>
+    <p class="required-hint" id="requiredHint">กรอกชื่อและเบอร์โทรให้ครบก่อนคัดลอก</p>
+    <div class="note-preview" id="notePreview"></div>
+    <p class="copy-toast" id="copyToast"></p>
+
+    <p class="footnote">ระยะทางจากปุ่ม "ใช้ตำแหน่งปัจจุบัน" เป็นค่าประมาณ ระยะถนนจริงอาจต่างจากนี้เล็กน้อย</p>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SHOP_NAME = "YOMO ข้าวไข่ลูกเขย";
+  var POS_URL = "https://mobile-order.wongnai.com/r/5889c073-df92-4506-aa40-dd52122ebb95";
+
+  // พิกัดร้าน ใช้คำนวณระยะทางเมื่อลูกค้ากดปุ่ม "ใช้ตำแหน่งปัจจุบัน"
+  var SHOP_LAT = 13.778685908650033;
+  var SHOP_LNG = 100.4892634246037;
+  // ตัวคูณประมาณระยะทางถนนจริงจากระยะเส้นตรง (นกบิน) — ปรับได้ถ้ารู้สึกว่าระบบเลือกช่วงผิดบ่อย
+  var ROAD_FACTOR = 1.3;
+
+  // แก้ตัวเลขตรงนี้ได้เลยถ้าเกณฑ์ฟรีส่ง/ค่าส่งเปลี่ยน — ดู README.md ประกอบ
+  // minKm/maxKm ใช้ตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" เพื่อเลือกช่วงที่ตรงกับระยะจริงให้อัตโนมัติ
+  var ZONES = [
+    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 115, fee: 38, minKm: 0, maxKm: 1 },
+    { label: "1-3 กม.",              threshold: 135, fee: 46, minKm: 1, maxKm: 3 },
+    { label: "3-5 กม.",              threshold: 180, fee: 61, minKm: 3, maxKm: 5 },
+    { label: "เกิน 5 กม.",           threshold: 205, fee: 70, estimate: true, minKm: 5, maxKm: Infinity,
+      note: "ระยะไกล ทักแชทร้านเพื่อยืนยันค่าส่งอีกครั้ง" }
+  ];
+
+  var locateBtn     = document.getElementById("locateBtn");
+  var geoStatus     = document.getElementById("geoStatus");
+  var zoneSelect    = document.getElementById("zone");
+  var headlineBox   = document.getElementById("headlineBox");
+  var headlineK     = document.getElementById("headlineK");
+  var headlineV     = document.getElementById("headlineV");
+  var headlineSub   = document.getElementById("headlineSub");
+  var optionsBox    = document.getElementById("optionsBox");
+  var farWarn       = document.getElementById("farWarn");
+  var farWarnText   = document.getElementById("farWarnText");
+  var nameInput     = document.getElementById("nameInput");
+  var phoneInput    = document.getElementById("phoneInput");
+  var addressInput  = document.getElementById("addressInput");
+  var copyBtn       = document.getElementById("copyBtn");
+  var requiredHint  = document.getElementById("requiredHint");
+  var notePreview   = document.getElementById("notePreview");
+  var copyToast     = document.getElementById("copyToast");
+  var posBtn        = document.getElementById("posBtn");
+
+  posBtn.href = POS_URL;
+
+  ZONES.forEach(function (z, i) {
+    var opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = z.label;
+    zoneSelect.appendChild(opt);
+  });
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function zoneIndexForKm(km) {
+    for (var i = 0; i < ZONES.length; i++) {
+      if (km >= ZONES[i].minKm && km < ZONES[i].maxKm) return i;
+    }
+    return ZONES.length - 1;
+  }
+
+  locateBtn.addEventListener("click", function () {
+    if (!navigator.geolocation) {
+      geoStatus.textContent = "อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง กรุณาเลือกระยะทางเองด้านล่าง";
+      return;
+    }
+    locateBtn.disabled = true;
+    geoStatus.textContent = "กำลังค้นหาตำแหน่ง...";
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        var straightKm = haversineKm(SHOP_LAT, SHOP_LNG, pos.coords.latitude, pos.coords.longitude);
+        var estKm = straightKm * ROAD_FACTOR;
+        var idx = zoneIndexForKm(estKm);
+        zoneSelect.value = idx;
+        geoStatus.textContent = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม. — เลือกช่วง \"" + ZONES[idx].label + "\" ให้อัตโนมัติ (ตรวจสอบอีกครั้งได้ด้านล่าง)";
+        locateBtn.disabled = false;
+        render();
+      },
+      function () {
+        geoStatus.textContent = "ไม่สามารถระบุตำแหน่งได้ กรุณาเลือกระยะทางเองด้านล่าง";
+        locateBtn.disabled = false;
+      }
+    );
+  });
+
+  var fulfillment = "deliver"; // "deliver" | "pickup"
+
+  function fmt(n) { return n.toLocaleString("th-TH"); }
+  function baht(n) { return "฿" + fmt(Math.round(n)); }
+  function currentZone() { return ZONES[zoneSelect.value]; }
+
+  function makeOptCard(id, tag, title, priceHtml, priceFree, desc, selected) {
+    var lbl = document.createElement("label");
+    lbl.className = "opt" + (selected ? " selected" : "");
+    lbl.id = id;
+
+    var input = document.createElement("input");
+    input.type = "radio";
+    input.name = "fulfillment";
+    input.checked = !!selected;
+    lbl.appendChild(input);
+
+    var html = "";
+    if (tag) html += '<span class="tag">' + tag + "</span>";
+    html += '<div class="top-row"><span class="title">' + title + '</span><span class="price' +
+      (priceFree ? " free" : "") + '">' + priceHtml + "</span></div>";
+    html += '<p class="desc">' + desc + "</p>";
+    lbl.innerHTML += html;
+
+    return lbl;
+  }
+
+  function render() {
+    var zone = currentZone();
+
+    // หัวเรื่องใหญ่: ตอบคำถามที่ลูกค้ากลัวที่สุดตั้งแต่แรกเห็น — "ต้องจ่ายค่าส่งไหม เท่าไหร่"
+    headlineBox.classList.toggle("free", false);
+    headlineK.textContent = "ค่าส่งของช่วง " + zone.label;
+    headlineV.textContent = (zone.estimate ? "เริ่มต้น " : "") + baht(zone.fee);
+    headlineSub.textContent = "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาท";
+
+    optionsBox.innerHTML = "";
+
+    var deliverCard = makeOptCard(
+      "optDeliver", null, "จัดส่งถึงบ้าน",
+      (zone.estimate ? "เริ่มต้น " : "") + baht(zone.fee), false,
+      "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาทขึ้นไป" +
+        (zone.estimate ? " (ค่าส่งเป็นค่าเริ่มต้น อาจเปลี่ยนแปลงตามระยะจริง)" : ""),
+      fulfillment === "deliver"
+    );
+    deliverCard.addEventListener("click", function () { fulfillment = "deliver"; render(); });
+    optionsBox.appendChild(deliverCard);
+
+    var pickupCard = makeOptCard(
+      "optPickup", "ไม่มีค่าส่งเลย", "มารับเองที่ร้าน", "ฟรี", true,
+      "สะดวก ไม่ต้องรอไรเดอร์ มารับที่ร้านได้เลย",
+      fulfillment === "pickup"
+    );
+    pickupCard.addEventListener("click", function () { fulfillment = "pickup"; render(); });
+    optionsBox.appendChild(pickupCard);
+
+    if (zone.note) {
+      farWarn.classList.remove("hidden");
+      farWarnText.textContent = zone.note;
+    } else {
+      farWarn.classList.add("hidden");
+    }
+
+    updateSummary(zone);
+  }
+
+  function updateSummary(zone) {
+    var name = nameInput.value.trim();
+    var phone = phoneInput.value.trim();
+    var address = addressInput.value.trim();
+
+    var ready = name && phone;
+    copyBtn.disabled = !ready;
+    requiredHint.style.display = ready ? "none" : "block";
+
+    var choiceText = fulfillment === "pickup"
+      ? "มารับเองที่ร้าน (ไม่มีค่าส่ง)"
+      : "จัดส่งถึงบ้าน (ค่าส่ง " + baht(zone.fee) + (zone.estimate ? " เริ่มต้น" : "") +
+        ", ฟรีถ้าสั่งครบ " + baht(zone.threshold) + ")";
+
+    var lines = [
+      "📦 เช็คค่าส่ง - " + SHOP_NAME,
+      "------------------------------",
+      "ชื่อลูกค้า: " + (name || "-"),
+      "เบอร์โทร: " + (phone || "-"),
+      "ที่อยู่จัดส่ง: " + (address || "-"),
+      "ระยะทางโดยประมาณ: " + zone.label,
+      "ทางเลือกที่เลือก: " + choiceText
+    ];
+    if (zone.note) lines.push("หมายเหตุ: " + zone.note);
+    lines.push("------------------------------");
+
+    notePreview.dataset.text = lines.join("\n");
+  }
+
+  function copySummary() {
+    var text = notePreview.dataset.text;
+    if (!text) return;
+
+    notePreview.textContent = text;
+    notePreview.classList.add("show");
+
+    var done = function () {
+      copyToast.textContent = "คัดลอกแล้ว! ไปวางในช่อง Note ที่หน้าสั่งเมนูได้เลย";
+      setTimeout(function () { copyToast.textContent = ""; }, 4000);
+    };
+    var fallbackCopy = function () {
+      var tmp = document.createElement("textarea");
+      tmp.value = text;
+      tmp.style.position = "fixed";
+      tmp.style.opacity = "0";
+      document.body.appendChild(tmp);
+      tmp.focus();
+      tmp.select();
+      try {
+        document.execCommand("copy");
+        done();
+      } catch (e) {
+        copyToast.textContent = "คัดลอกไม่สำเร็จ กรุณากดค้างที่ข้อความด้านบนแล้วคัดลอกเอง";
+      }
+      document.body.removeChild(tmp);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+
+  zoneSelect.addEventListener("change", render);
+  [nameInput, phoneInput, addressInput].forEach(function (el) {
+    el.addEventListener("input", function () { updateSummary(currentZone()); });
+  });
+
+  copyBtn.addEventListener("click", copySummary);
+
+  render();
+})();
+</script>
+</body>
+</html>
