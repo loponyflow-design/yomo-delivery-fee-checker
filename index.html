@@ -145,6 +145,18 @@
     font-size:12.5px; color:rgba(35,31,32,0.8); line-height:1.5;
   }
 
+  .trust-strip{
+    margin:0 0 14px; padding:12px 14px;
+    background:var(--white); border:2px solid var(--ink); border-radius:12px;
+  }
+  .trust-strip .trust-item{
+    display:flex; align-items:flex-start; gap:8px;
+    font-size:13px; color:rgba(35,31,32,0.75); line-height:1.5;
+    margin-bottom:6px;
+  }
+  .trust-strip .trust-item:last-child{ margin-bottom:0; }
+  .trust-strip .trust-item .tick{ color:var(--green); font-weight:700; flex-shrink:0; }
+
   .cta-row{ display:flex; flex-direction:column; gap:10px; }
   .cta{
     display:block; text-align:center; text-decoration:none;
@@ -220,6 +232,14 @@
       <label class="field-label" for="phoneInput">เบอร์โทรติดต่อ</label>
       <input type="tel" id="phoneInput" placeholder="08X-XXX-XXXX">
     </section>
+
+    <!-- ข้อความเชิงคุณภาพ ไม่มีตัวเลขเปรียบเทียบ (ยังไม่มีตัวเลขจริงจาก Grab/Lineman/Shopee ยืนยัน)
+         พอมีตัวเลขส่วนต่างราคา/ค่าส่งจริงแล้ว เพิ่มบรรทัดเปรียบเทียบตรงนี้ได้เลย -->
+    <div class="trust-strip">
+      <div class="trust-item"><span class="tick">✓</span><span>สั่งตรงกับร้าน ไม่ผ่านแอปตัวกลาง</span></div>
+      <div class="trust-item"><span class="tick">✓</span><span>ค่าส่งคำนวณตรงไปตรงมา ไม่มีค่าธรรมเนียมแฝง ไม่ปัดเศษ</span></div>
+      <div class="trust-item"><span class="tick">✓</span><span>ไม่ต้องโหลดแอปเพิ่ม สั่งจากหน้านี้ได้เลย</span></div>
+    </div>
 
     <div class="cta-row">
       <a class="cta" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
