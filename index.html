@@ -422,8 +422,13 @@
   }
 
   function addressFromGeocode(data) {
-    var parts = [data.locality, data.city, data.principalSubdivision].filter(Boolean);
-    // ตัดชื่อที่ซ้ำกันออก (บางพื้นที่ locality กับ city เป็นชื่อเดียวกัน)
+    // ชื่อเขต/อำเภอ ไม่ได้อยู่ใน field ตรงๆ ของ response ต้องขุดจาก localityInfo.administrative
+    // (adminLevel 6 = เขต/อำเภอ, อยู่ระหว่างจังหวัด (level 4) กับแขวง/ตำบล (level 8))
+    var admin = (data.localityInfo && data.localityInfo.administrative) || [];
+    var district = admin.filter(function (a) { return a.adminLevel === 6; })[0];
+
+    var parts = [data.locality, district && district.name, data.city, data.principalSubdivision].filter(Boolean);
+    // ตัดชื่อที่ซ้ำกันออก (บางพื้นที่ city กับ principalSubdivision เป็นชื่อเดียวกัน)
     var seen = {};
     var unique = [];
     parts.forEach(function (p) {
