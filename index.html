@@ -108,6 +108,22 @@
     color:rgba(255,255,255,0.7); margin:8px 0 0;
   }
 
+  /* แถบความคืบหน้าส่งฟรี — เชื่อมกับยอดที่ติ๊กใน section เทียบราคา */
+  .freeship-box{ margin-bottom:14px; }
+  .freeship-track{
+    height:10px; border-radius:6px; background:var(--paper);
+    border:2px solid var(--ink); overflow:hidden;
+  }
+  .freeship-fill{
+    height:100%; width:0%; background:var(--red); border-radius:4px;
+    transition:width .25s ease;
+  }
+  .freeship-box.met .freeship-fill{ background:var(--green); }
+  .freeship-text{
+    font-size:12.5px; color:rgba(35,31,32,0.7); text-align:center; margin:8px 0 0;
+  }
+  .freeship-box.met .freeship-text{ color:var(--green); font-weight:600; }
+
   /* option cards: the two fulfillment choices */
   .options{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
   .opt{
@@ -246,6 +262,11 @@
       <p class="sub2" id="headlineSub">-</p>
     </div>
 
+    <div class="freeship-box" id="freeshipBox">
+      <div class="freeship-track"><div class="freeship-fill" id="freeshipFill"></div></div>
+      <p class="freeship-text" id="freeshipText">-</p>
+    </div>
+
     <div class="options" id="optionsBox"></div>
 
     <div class="warn-box hidden" id="farWarn">
@@ -316,18 +337,16 @@
   // แก้ตัวเลขตรงนี้ได้เลยถ้าเกณฑ์ฟรีส่ง/ค่าส่งเปลี่ยน — ดู README.md ประกอบ
   // minKm/maxKm ใช้ตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" เพื่อเลือกช่วงที่ตรงกับระยะจริงให้อัตโนมัติ
   var ZONES = [
-    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 115, fee: 38, minKm: 0, maxKm: 1 },
-    { label: "1-3 กม.",              threshold: 135, fee: 46, minKm: 1, maxKm: 3 },
-    { label: "3-5 กม.",              threshold: 180, fee: 61, minKm: 3, maxKm: 5 },
-    { label: "เกิน 5 กม.",           threshold: 205, fee: 70, estimate: true, minKm: 5, maxKm: Infinity,
-      note: "ระยะไกล ทักแชทร้านเพื่อยืนยันค่าส่งอีกครั้ง" }
+    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 140, fee: 38, minKm: 0, maxKm: 1 },
+    { label: "1-3 กม.",              threshold: 190, fee: 50, minKm: 1, maxKm: 3 },
+    { label: "3-5 กม.",              threshold: 250, fee: 65, minKm: 3, maxKm: 5 },
+    { label: "เกิน 5 กม.",           threshold: 340, fee: 90, estimate: true, minKm: 5, maxKm: Infinity,
+      note: "ถ้าไกลกว่า 8 กม. โทรเช็คราคากับร้านก่อนสั่ง" }
   ];
 
   // ราคาเมนู "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
   var MENU_ITEMS = [
     { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
-    { name: "เซ็ทข้าวไข่ลูกเขย YOMO (เมนูใดก็ได้)+เครื่องดื่ม", store: 109, online: 149 },
-    { name: "เซ็ทเครื่องดื่ม 2 แก้ว", store: 89, online: 119 },
     { name: "ข้าวไข่ลูกเขย (พริกเผา เค็ม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
     { name: "มัทฉะ ลาเต้", store: 65, online: 80 },
     { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65 },
@@ -363,6 +382,9 @@
   var sumDiff       = document.getElementById("sumDiff");
   var totalSaveBox  = document.getElementById("totalSaveBox");
   var totalSaveV    = document.getElementById("totalSaveV");
+  var freeshipBox   = document.getElementById("freeshipBox");
+  var freeshipFill  = document.getElementById("freeshipFill");
+  var freeshipText  = document.getElementById("freeshipText");
 
   posBtn.href = POS_URL;
 
@@ -514,6 +536,7 @@
     }
 
     updateSummary(zone);
+    updateMenuSavings();
   }
 
   function updateSummary(zone) {
@@ -605,30 +628,46 @@
     });
   }
 
+  function updateFreeShippingProgress(currentOrder) {
+    var zone = currentZone();
+    var pct = Math.min(100, (currentOrder / zone.threshold) * 100);
+    freeshipFill.style.width = pct + "%";
+
+    if (currentOrder >= zone.threshold) {
+      freeshipBox.classList.add("met");
+      freeshipText.textContent = "ถึงเกณฑ์ส่งฟรีแล้ว ✅";
+    } else {
+      freeshipBox.classList.remove("met");
+      var remaining = zone.threshold - currentOrder;
+      freeshipText.textContent = "อีก " + fmt(remaining) + " บาทถึงส่งฟรี 🎉";
+    }
+  }
+
   function updateMenuSavings() {
     var checkboxes = menuList.querySelectorAll('input[type=checkbox]:checked');
-    if (checkboxes.length === 0) {
-      menuSummary.classList.add("hidden");
-      totalSaveBox.classList.add("hidden");
-      return;
-    }
-
     var storeSum = 0, onlineSum = 0;
     checkboxes.forEach(function (cb) {
       var item = MENU_ITEMS[cb.dataset.idx];
       storeSum += item.store;
       onlineSum += item.online;
     });
-    var diffSum = onlineSum - storeSum;
 
-    sumStore.textContent = baht(storeSum);
-    sumOnline.textContent = baht(onlineSum);
-    sumDiff.textContent = baht(diffSum);
-    menuSummary.classList.remove("hidden");
+    if (checkboxes.length === 0) {
+      menuSummary.classList.add("hidden");
+      totalSaveBox.classList.add("hidden");
+    } else {
+      var diffSum = onlineSum - storeSum;
+      sumStore.textContent = baht(storeSum);
+      sumOnline.textContent = baht(onlineSum);
+      sumDiff.textContent = baht(diffSum);
+      menuSummary.classList.remove("hidden");
 
-    var total = diffSum + COMPETITOR_DELIVERY_FEE_DIFF;
-    totalSaveV.textContent = "ประหยัดรวม " + baht(total);
-    totalSaveBox.classList.remove("hidden");
+      var total = diffSum + COMPETITOR_DELIVERY_FEE_DIFF;
+      totalSaveV.textContent = "ประหยัดรวม " + baht(total);
+      totalSaveBox.classList.remove("hidden");
+    }
+
+    updateFreeShippingProgress(storeSum);
   }
 
   zoneSelect.addEventListener("change", render);
