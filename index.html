@@ -213,6 +213,8 @@
   .cta:active{ transform:translateY(1px); }
   .cta.secondary{ background:var(--white); color:var(--ink); font-weight:500; font-size:15px; padding:13px 10px; }
   .cta:disabled{ opacity:.45; cursor:default; }
+  /* เขียว LINE ของแบรนด์ ใช้เฉพาะปุ่มนี้เพื่อให้ลูกค้าจำสัญลักษณ์ LINE ได้ทันที ไม่ใช่สีในธีมร้าน */
+  .cta.line{ background:#06C755; color:var(--white); }
 
   .note-preview{
     margin-top:10px; padding:11px 12px; border-radius:10px;
@@ -262,11 +264,6 @@
       <p class="sub2" id="headlineSub">-</p>
     </div>
 
-    <div class="freeship-box" id="freeshipBox">
-      <div class="freeship-track"><div class="freeship-fill" id="freeshipFill"></div></div>
-      <p class="freeship-text" id="freeshipText">-</p>
-    </div>
-
     <div class="options" id="optionsBox"></div>
 
     <div class="warn-box hidden" id="farWarn">
@@ -291,6 +288,11 @@
       <p class="sub2">เทียบกับราคาสั่งผ่านแอปเดลิเวอรี</p>
     </div>
 
+    <div class="freeship-box" id="freeshipBox">
+      <div class="freeship-track"><div class="freeship-fill" id="freeshipFill"></div></div>
+      <p class="freeship-text" id="freeshipText">-</p>
+    </div>
+
     <section>
       <p class="step-label">ข้อมูลติดต่อ (ใช้ตอนคัดลอกสรุป)</p>
 
@@ -311,6 +313,7 @@
 
     <div class="cta-row">
       <a class="cta" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
+      <button class="cta line" id="lineBtn">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE</button>
       <button class="cta secondary" id="copyBtn">คัดลอกไปวางใน Note</button>
     </div>
     <p class="required-hint" id="requiredHint">กรอกชื่อและเบอร์โทรให้ครบก่อนคัดลอก</p>
@@ -327,6 +330,8 @@
 
   var SHOP_NAME = "YOMO ข้าวไข่ลูกเขย";
   var POS_URL = "https://mobile-order.wongnai.com/r/5889c073-df92-4506-aa40-dd52122ebb95";
+  // LINE OA ของร้าน — เปลี่ยนได้ถ้าร้านเปลี่ยนบัญชี ใช้เปิดแชทพร้อมข้อความสรุปจัดส่งให้อัตโนมัติ
+  var LINE_OA_ID = "@002simug";
 
   // พิกัดร้าน ใช้คำนวณระยะทางเมื่อลูกค้ากดปุ่ม "ใช้ตำแหน่งปัจจุบัน"
   var SHOP_LAT = 13.778685908650033;
@@ -371,6 +376,7 @@
   var phoneInput    = document.getElementById("phoneInput");
   var addressInput  = document.getElementById("addressInput");
   var copyBtn       = document.getElementById("copyBtn");
+  var lineBtn       = document.getElementById("lineBtn");
   var requiredHint  = document.getElementById("requiredHint");
   var notePreview   = document.getElementById("notePreview");
   var copyToast     = document.getElementById("copyToast");
@@ -551,6 +557,7 @@
 
     var ready = name && phone;
     copyBtn.disabled = !ready;
+    lineBtn.disabled = !ready;
     requiredHint.style.display = ready ? "none" : "block";
 
     var choiceText = fulfillment === "pickup"
@@ -606,6 +613,13 @@
     } else {
       fallbackCopy();
     }
+  }
+
+  function sendToLine() {
+    var text = notePreview.dataset.text;
+    if (!text) return;
+    var url = "https://line.me/R/oaMessage/" + LINE_OA_ID + "/?" + encodeURIComponent(text);
+    window.open(url, "_blank", "noopener");
   }
 
   function renderMenuList() {
@@ -681,6 +695,7 @@
   });
 
   copyBtn.addEventListener("click", copySummary);
+  lineBtn.addEventListener("click", sendToLine);
 
   renderMenuList();
   render();
