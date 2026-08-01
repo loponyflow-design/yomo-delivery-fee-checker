@@ -145,6 +145,36 @@
     font-size:12.5px; color:rgba(35,31,32,0.8); line-height:1.5;
   }
 
+  /* เทียบราคา สั่งตรง vs สั่งผ่านแอป */
+  .menu-hint{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; margin:0 0 10px; }
+  .menu-item{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 2px; border-bottom:1.5px solid var(--line); cursor:pointer;
+  }
+  .menu-item:last-of-type{ border-bottom:none; }
+  .menu-item input[type=checkbox]{ width:18px; height:18px; flex-shrink:0; accent-color:var(--red); }
+  .menu-item .menu-name{ flex:1; font-size:13.5px; line-height:1.4; }
+  .menu-item .menu-prices{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
+  .menu-item .price-store{ font-family:'Kanit',sans-serif; font-weight:600; font-size:14px; }
+  .menu-item .price-online{ font-size:11.5px; color:rgba(35,31,32,0.45); text-decoration:line-through; }
+  .menu-item .menu-diff{
+    font-family:'Kanit',sans-serif; font-weight:600; font-size:12.5px; color:var(--green);
+    flex-shrink:0; min-width:34px; text-align:right;
+  }
+  .menu-item.checked{ background:var(--red-soft); border-radius:10px; margin:0 -8px; padding-left:10px; padding-right:10px; }
+
+  .menu-summary{
+    margin-top:6px; padding:11px 12px; border-radius:10px;
+    background:var(--paper); border:2px dashed var(--ink);
+  }
+  .menu-summary .row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:13px; color:rgba(35,31,32,0.7); padding:3px 0;
+  }
+  .menu-summary .row.highlight{ font-family:'Kanit',sans-serif; font-weight:600; font-size:14px; color:var(--red); }
+
+  .headline-box.save .v{ color:#7CE0A8; }
+
   .trust-strip{
     margin:0 0 14px; padding:12px 14px;
     background:var(--white); border:2px solid var(--ink); border-radius:12px;
@@ -224,6 +254,23 @@
     </div>
 
     <section>
+      <p class="step-label">เทียบราคา สั่งตรง vs สั่งผ่านแอป</p>
+      <p class="menu-hint">ติ๊กเมนูที่สนใจ ดูส่วนต่างราคาก่อนตัดสินใจสั่ง</p>
+      <div id="menuList"></div>
+      <div class="menu-summary hidden" id="menuSummary">
+        <div class="row"><span>ราคาหน้าร้าน</span><span id="sumStore">฿0</span></div>
+        <div class="row"><span>ราคาถ้าสั่งผ่านแอป</span><span id="sumOnline">฿0</span></div>
+        <div class="row highlight"><span>ประหยัดจากราคาเมนู</span><span id="sumDiff">฿0</span></div>
+      </div>
+    </section>
+
+    <div class="headline-box save hidden" id="totalSaveBox">
+      <p class="k">สั่งตรงกับร้านวันนี้</p>
+      <p class="v" id="totalSaveV">ประหยัดรวม ฿0</p>
+      <p class="sub2">เทียบกับราคาสั่งผ่านแอปเดลิเวอรี</p>
+    </div>
+
+    <section>
       <p class="step-label">ข้อมูลติดต่อ (ใช้ตอนคัดลอกสรุป)</p>
 
       <label class="field-label" for="nameInput">ชื่อลูกค้า</label>
@@ -276,6 +323,21 @@
       note: "ระยะไกล ทักแชทร้านเพื่อยืนยันค่าส่งอีกครั้ง" }
   ];
 
+  // ราคาเมนู "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
+  var MENU_ITEMS = [
+    { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
+    { name: "เซ็ทข้าวไข่ลูกเขย YOMO (เมนูใดก็ได้)+เครื่องดื่ม", store: 109, online: 149 },
+    { name: "เซ็ทเครื่องดื่ม 2 แก้ว", store: 89, online: 119 },
+    { name: "ข้าวไข่ลูกเขย (พริกเผา เค็ม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
+    { name: "มัทฉะ ลาเต้", store: 65, online: 80 },
+    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65 },
+    { name: "โกโก้ หอมเข้ม", store: 55, online: 65 }
+  ];
+
+  // ยังไม่มีตัวเลขค่าส่ง/ค่าบริการจริงของ Grab/Lineman/Shopee มาเทียบ (เช็ค Lalamove จากเว็บแล้วไม่มีราคาสาธารณะ)
+  // ใส่ 0 ไว้ก่อน — พอร้านมีตัวเลขจริงค่อยแก้ตรงนี้ ยอดประหยัดรวมท้ายหน้าจะรวมค่านี้เข้าไปอัตโนมัติ
+  var COMPETITOR_DELIVERY_FEE_DIFF = 0;
+
   var locateBtn     = document.getElementById("locateBtn");
   var geoStatus     = document.getElementById("geoStatus");
   var zoneSelect    = document.getElementById("zone");
@@ -294,6 +356,13 @@
   var notePreview   = document.getElementById("notePreview");
   var copyToast     = document.getElementById("copyToast");
   var posBtn        = document.getElementById("posBtn");
+  var menuList      = document.getElementById("menuList");
+  var menuSummary   = document.getElementById("menuSummary");
+  var sumStore      = document.getElementById("sumStore");
+  var sumOnline     = document.getElementById("sumOnline");
+  var sumDiff       = document.getElementById("sumDiff");
+  var totalSaveBox  = document.getElementById("totalSaveBox");
+  var totalSaveV    = document.getElementById("totalSaveV");
 
   posBtn.href = POS_URL;
 
@@ -511,6 +580,57 @@
     }
   }
 
+  function renderMenuList() {
+    MENU_ITEMS.forEach(function (item, i) {
+      var diff = item.online - item.store;
+
+      var lbl = document.createElement("label");
+      lbl.className = "menu-item";
+      lbl.innerHTML =
+        '<input type="checkbox" data-idx="' + i + '">' +
+        '<span class="menu-name">' + item.name + '</span>' +
+        '<span class="menu-prices">' +
+          '<span class="price-store">' + baht(item.store) + '</span>' +
+          '<span class="price-online">' + baht(item.online) + '</span>' +
+        '</span>' +
+        '<span class="menu-diff">+' + fmt(diff) + '</span>';
+
+      var checkbox = lbl.querySelector("input");
+      checkbox.addEventListener("change", function () {
+        lbl.classList.toggle("checked", checkbox.checked);
+        updateMenuSavings();
+      });
+
+      menuList.appendChild(lbl);
+    });
+  }
+
+  function updateMenuSavings() {
+    var checkboxes = menuList.querySelectorAll('input[type=checkbox]:checked');
+    if (checkboxes.length === 0) {
+      menuSummary.classList.add("hidden");
+      totalSaveBox.classList.add("hidden");
+      return;
+    }
+
+    var storeSum = 0, onlineSum = 0;
+    checkboxes.forEach(function (cb) {
+      var item = MENU_ITEMS[cb.dataset.idx];
+      storeSum += item.store;
+      onlineSum += item.online;
+    });
+    var diffSum = onlineSum - storeSum;
+
+    sumStore.textContent = baht(storeSum);
+    sumOnline.textContent = baht(onlineSum);
+    sumDiff.textContent = baht(diffSum);
+    menuSummary.classList.remove("hidden");
+
+    var total = diffSum + COMPETITOR_DELIVERY_FEE_DIFF;
+    totalSaveV.textContent = "ประหยัดรวม " + baht(total);
+    totalSaveBox.classList.remove("hidden");
+  }
+
   zoneSelect.addEventListener("change", render);
   [nameInput, phoneInput, addressInput].forEach(function (el) {
     el.addEventListener("input", function () { updateSummary(currentZone()); });
@@ -518,6 +638,7 @@
 
   copyBtn.addEventListener("click", copySummary);
 
+  renderMenuList();
   render();
 })();
 </script>
