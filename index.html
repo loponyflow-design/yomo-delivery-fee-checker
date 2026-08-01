@@ -161,33 +161,8 @@
     font-size:12.5px; color:rgba(35,31,32,0.8); line-height:1.5;
   }
 
-  /* เทียบราคา สั่งตรง vs สั่งผ่านแอป */
+  /* เซ็ตแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
   .menu-hint{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; margin:0 0 10px; }
-  .menu-item{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 2px; border-bottom:1.5px solid var(--line); cursor:pointer;
-  }
-  .menu-item:last-of-type{ border-bottom:none; }
-  .menu-item input[type=checkbox]{ width:18px; height:18px; flex-shrink:0; accent-color:var(--red); }
-  .menu-item .menu-name{ flex:1; font-size:13.5px; line-height:1.4; }
-  .menu-item .menu-prices{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
-  .menu-item .price-store{ font-family:'Kanit',sans-serif; font-weight:600; font-size:14px; }
-  .menu-item .price-online{ font-size:11.5px; color:rgba(35,31,32,0.45); text-decoration:line-through; }
-  .menu-item .menu-diff{
-    font-family:'Kanit',sans-serif; font-weight:600; font-size:12.5px; color:var(--green);
-    flex-shrink:0; min-width:34px; text-align:right;
-  }
-  .menu-item.checked{ background:var(--red-soft); border-radius:10px; margin:0 -8px; padding-left:10px; padding-right:10px; }
-
-  .menu-summary{
-    margin-top:6px; padding:11px 12px; border-radius:10px;
-    background:var(--paper); border:2px dashed var(--ink);
-  }
-  .menu-summary .row{
-    display:flex; justify-content:space-between; align-items:baseline;
-    font-size:13px; color:rgba(35,31,32,0.7); padding:3px 0;
-  }
-  .menu-summary .row.highlight{ font-family:'Kanit',sans-serif; font-weight:600; font-size:14px; color:var(--red); }
 
   .headline-box.save .v{ color:#7CE0A8; }
 
@@ -272,14 +247,9 @@
     </div>
 
     <section>
-      <p class="step-label">เทียบราคา สั่งตรง vs สั่งผ่านแอป</p>
-      <p class="menu-hint">ติ๊กเมนูที่สนใจ ดูส่วนต่างราคาก่อนตัดสินใจสั่ง</p>
-      <div id="menuList"></div>
-      <div class="menu-summary hidden" id="menuSummary">
-        <div class="row"><span>ราคาหน้าร้าน</span><span id="sumStore">฿0</span></div>
-        <div class="row"><span>ราคาถ้าสั่งผ่านแอป</span><span id="sumOnline">฿0</span></div>
-        <div class="row highlight"><span>ประหยัดจากราคาเมนู</span><span id="sumDiff">฿0</span></div>
-      </div>
+      <p class="step-label">เซ็ตแนะนำ</p>
+      <p class="menu-hint">เลือก 1 เซ็ตที่ถูกใจ — คุ้มกว่าสั่งผ่านแอป และช่วยให้ถึงเกณฑ์ฟรีส่งของโซนคุณ</p>
+      <div class="options" id="setList"></div>
     </section>
 
     <div class="headline-box save hidden" id="totalSaveBox">
@@ -349,13 +319,23 @@
       note: "ถ้าไกลกว่า 8 กม. โทรเช็คราคากับร้านก่อนสั่ง" }
   ];
 
-  // ราคาเมนู "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
-  var MENU_ITEMS = [
-    { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
-    { name: "ข้าวไข่ลูกเขย (พริกเผา เค็ม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
-    { name: "มัทฉะ ลาเต้", store: 65, online: 80 },
-    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65 },
-    { name: "โกโก้ หอมเข้ม", store: 55, online: 65 }
+  // ราคาเมนู ใช้ประกอบเซ็ตแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
+  var MENU_ITEMS = {
+    riceYomo:  { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
+    riceSpicy: { name: "ข้าวไข่ลูกเขย (พริกเผา เค็ม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
+    matcha:    { name: "มัทฉะ ลาเต้", store: 65, online: 80 },
+    coffee:    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65 },
+    cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, online: 65 }
+  };
+
+  // เซ็ตแนะนำ "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — ร้านจะเอาไปตั้งเป็นเมนูจริงในระบบสั่งซื้อ
+  // ให้ตรงกับรายการนี้เป๊ะๆ (ไม่ได้ลดราคาเป็นเซ็ต แค่รวมราคาปกติให้ถึงเกณฑ์ฟรีส่งของแต่ละโซนพอดี)
+  // แก้ราคา/รายการ/เพิ่มลดเซ็ตได้อิสระ แค่แก้ array นี้ (key ต้องตรงกับ MENU_ITEMS ด้านบน)
+  var SETS = [
+    { name: "เซ็ต A", items: [{ key: "riceYomo", qty: 1 }, { key: "coffee", qty: 1 }, { key: "cocoa", qty: 1 }] },
+    { name: "เซ็ต B", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "coffee", qty: 1 }] },
+    { name: "เซ็ต C", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 1 }] },
+    { name: "เซ็ต D", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 2 }, { key: "cocoa", qty: 1 }] }
   ];
 
   // ยังไม่มีตัวเลขค่าส่ง/ค่าบริการจริงของ Grab/Lineman/Shopee มาเทียบ (เช็ค Lalamove จากเว็บแล้วไม่มีราคาสาธารณะ)
@@ -381,11 +361,7 @@
   var notePreview   = document.getElementById("notePreview");
   var copyToast     = document.getElementById("copyToast");
   var posBtn        = document.getElementById("posBtn");
-  var menuList      = document.getElementById("menuList");
-  var menuSummary   = document.getElementById("menuSummary");
-  var sumStore      = document.getElementById("sumStore");
-  var sumOnline     = document.getElementById("sumOnline");
-  var sumDiff       = document.getElementById("sumDiff");
+  var setList       = document.getElementById("setList");
   var totalSaveBox  = document.getElementById("totalSaveBox");
   var totalSaveV    = document.getElementById("totalSaveV");
   var freeshipBox   = document.getElementById("freeshipBox");
@@ -484,19 +460,20 @@
   });
 
   var fulfillment = "deliver"; // "deliver" | "pickup"
+  var selectedSetIndex = null; // index ของ SETS ที่ลูกค้าคลิกเลือกอยู่ หรือ null ถ้ายังไม่เลือก
 
   function fmt(n) { return n.toLocaleString("th-TH"); }
   function baht(n) { return "฿" + fmt(Math.round(n)); }
   function currentZone() { return ZONES[zoneSelect.value]; }
 
-  function makeOptCard(id, tag, title, priceHtml, priceFree, desc, selected) {
+  function makeOptCard(id, tag, title, priceHtml, priceFree, desc, selected, groupName) {
     var lbl = document.createElement("label");
     lbl.className = "opt" + (selected ? " selected" : "");
     lbl.id = id;
 
     var input = document.createElement("input");
     input.type = "radio";
-    input.name = "fulfillment";
+    input.name = groupName || "fulfillment";
     input.checked = !!selected;
     lbl.appendChild(input);
 
@@ -547,7 +524,8 @@
     }
 
     updateSummary(zone);
-    updateMenuSavings();
+    renderSetList();
+    updateSetSelection();
   }
 
   function updateSummary(zone) {
@@ -565,6 +543,10 @@
       : "จัดส่งถึงบ้าน (ค่าส่ง " + baht(zone.fee) + (zone.estimate ? " เริ่มต้น" : "") +
         ", ฟรีถ้าสั่งครบ " + baht(zone.threshold) + ")";
 
+    var setText = selectedSetIndex !== null
+      ? SETS[selectedSetIndex].name + " (" + setItemsText(SETS[selectedSetIndex]) + ")"
+      : "-";
+
     var lines = [
       "📦 เช็คค่าส่ง - " + SHOP_NAME,
       "------------------------------",
@@ -572,7 +554,8 @@
       "เบอร์โทร: " + (phone || "-"),
       "ที่อยู่จัดส่ง: " + (address || "-"),
       "ระยะทางโดยประมาณ: " + zone.label,
-      "ทางเลือกที่เลือก: " + choiceText
+      "ทางเลือกที่เลือก: " + choiceText,
+      "เซ็ตที่สนใจ: " + setText
     ];
     if (zone.note) lines.push("หมายเหตุ: " + zone.note);
     lines.push("------------------------------");
@@ -622,28 +605,62 @@
     window.open(url, "_blank", "noopener");
   }
 
-  function renderMenuList() {
-    MENU_ITEMS.forEach(function (item, i) {
-      var diff = item.online - item.store;
+  function setTotals(set) {
+    var store = 0, online = 0;
+    set.items.forEach(function (it) {
+      var item = MENU_ITEMS[it.key];
+      store += item.store * it.qty;
+      online += item.online * it.qty;
+    });
+    return { store: store, online: online };
+  }
 
-      var lbl = document.createElement("label");
-      lbl.className = "menu-item";
-      lbl.innerHTML =
-        '<input type="checkbox" data-idx="' + i + '">' +
-        '<span class="menu-name">' + item.name + '</span>' +
-        '<span class="menu-prices">' +
-          '<span class="price-store">' + baht(item.store) + '</span>' +
-          '<span class="price-online">' + baht(item.online) + '</span>' +
-        '</span>' +
-        '<span class="menu-diff">+' + fmt(diff) + '</span>';
+  function setItemsText(set) {
+    return set.items.map(function (it) {
+      var item = MENU_ITEMS[it.key];
+      return (it.qty > 1 ? it.qty + "x " : "") + item.name;
+    }).join(" + ");
+  }
 
-      var checkbox = lbl.querySelector("input");
-      checkbox.addEventListener("change", function () {
-        lbl.classList.toggle("checked", checkbox.checked);
-        updateMenuSavings();
-      });
+  function selectSet(i) {
+    // การ์ดเป็น label ครอบ radio input ไว้ — คลิก 1 ครั้งเบราว์เซอร์ยิง click event 2 ครั้ง
+    // (ครั้งจากคลิกจริง + ครั้งจาก synthetic click ของ input ที่ bubble กลับขึ้นมา)
+    // ต้อง assign ค่าตรงๆ แบบเดียวกับการ์ดจัดส่ง/รับเอง ห้าม toggle เพราะยิง 2 ครั้งจะหักล้างกันเอง
+    selectedSetIndex = i;
+    renderSetList();
+    updateSummary(currentZone());
+    updateSetSelection();
+  }
 
-      menuList.appendChild(lbl);
+  function renderSetList() {
+    var zone = currentZone();
+
+    // หาเซ็ตที่ถูกที่สุดที่ถึงเกณฑ์ฟรีส่งของโซนนี้ เพื่อติด tag "แนะนำสำหรับโซนนี้"
+    var recommendedIndex = -1;
+    SETS.forEach(function (set, i) {
+      if (recommendedIndex === -1 && setTotals(set).store >= zone.threshold) recommendedIndex = i;
+    });
+
+    setList.innerHTML = "";
+    SETS.forEach(function (set, i) {
+      var totals = setTotals(set);
+      var meetsThreshold = totals.store >= zone.threshold;
+      var statusText = meetsThreshold
+        ? "ถึงฟรีส่งโซนนี้ ✅"
+        : "ยังไม่ถึงฟรีส่งโซนนี้ (ขาดอีก " + baht(zone.threshold - totals.store) + ")";
+      var desc = setItemsText(set) + "<br>ราคาสั่งผ่านแอป " + baht(totals.online) +
+        " — ประหยัด " + baht(totals.online - totals.store) + " • " + statusText;
+
+      var card = makeOptCard(
+        "set" + i,
+        i === recommendedIndex ? "แนะนำสำหรับโซนนี้" : null,
+        set.name,
+        baht(totals.store), false, desc,
+        selectedSetIndex === i,
+        "setChoice"
+      );
+      card.addEventListener("click", function () { selectSet(i); });
+      setList.appendChild(card);
     });
   }
 
@@ -662,31 +679,19 @@
     }
   }
 
-  function updateMenuSavings() {
-    var checkboxes = menuList.querySelectorAll('input[type=checkbox]:checked');
-    var storeSum = 0, onlineSum = 0;
-    checkboxes.forEach(function (cb) {
-      var item = MENU_ITEMS[cb.dataset.idx];
-      storeSum += item.store;
-      onlineSum += item.online;
-    });
-
-    if (checkboxes.length === 0) {
-      menuSummary.classList.add("hidden");
+  function updateSetSelection() {
+    if (selectedSetIndex === null) {
       totalSaveBox.classList.add("hidden");
-    } else {
-      var diffSum = onlineSum - storeSum;
-      sumStore.textContent = baht(storeSum);
-      sumOnline.textContent = baht(onlineSum);
-      sumDiff.textContent = baht(diffSum);
-      menuSummary.classList.remove("hidden");
-
-      var total = diffSum + COMPETITOR_DELIVERY_FEE_DIFF;
-      totalSaveV.textContent = "ประหยัดรวม " + baht(total);
-      totalSaveBox.classList.remove("hidden");
+      updateFreeShippingProgress(0);
+      return;
     }
 
-    updateFreeShippingProgress(storeSum);
+    var totals = setTotals(SETS[selectedSetIndex]);
+    var total = (totals.online - totals.store) + COMPETITOR_DELIVERY_FEE_DIFF;
+    totalSaveV.textContent = "ประหยัดรวม " + baht(total);
+    totalSaveBox.classList.remove("hidden");
+
+    updateFreeShippingProgress(totals.store);
   }
 
   zoneSelect.addEventListener("change", render);
@@ -697,7 +702,6 @@
   copyBtn.addEventListener("click", copySummary);
   lineBtn.addEventListener("click", sendToLine);
 
-  renderMenuList();
   render();
 })();
 </script>
