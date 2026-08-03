@@ -1,0 +1,18 @@
+{
+  "name": "เช็คค่าส่ง — YOMO ข้าวไข่ลูกเขย",
+  "short_name": "เช็คค่าส่ง YOMO",
+  "description": "เช็คค่าส่ง/ยอดขั้นต่ำฟรีส่งของร้าน YOMO ข้าวไข่ลูกเขย ก่อนตัดสินใจสั่ง",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf9f8",
+  "theme_color": "#BF1E2E",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgcng9IjM2IiBmaWxsPSIjQkYxRTJFIi8+CiAgPHRleHQgeD0iMTAwIiB5PSIxNDYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZm9udC1zaXplPSIxMjAiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlk8L3RleHQ+Cjwvc3ZnPgo=",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

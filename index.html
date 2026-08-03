@@ -6,6 +6,14 @@
 <title>เช็คค่าส่ง — YOMO ข้าวไข่ลูกเขย</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- เพิ่มเป็นไอคอนหน้าจอโฮมได้ (Android: "ติดตั้งแอป" จาก manifest / iOS: "เพิ่มไปยังหน้าจอโฮม" จาก Safari share sheet) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#BF1E2E">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgcng9IjM2IiBmaWxsPSIjQkYxRTJFIi8+CiAgPHRleHQgeD0iMTAwIiB5PSIxNDYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZm9udC1zaXplPSIxMjAiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlk8L3RleHQ+Cjwvc3ZnPgo=">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="เช็คค่าส่ง YOMO">
 <style>
   :root{
     --red:#BF1E2E; --ink:#231F20; --white:#FFFFFF;
@@ -227,6 +235,7 @@
     border:2.5px solid var(--ink);
   }
   .shop-status.open{ background:var(--green-soft); color:var(--green); }
+  .shop-status.closing-soon{ background:var(--badge); color:var(--ink); }
   .shop-status.closed{ background:var(--red-soft); color:var(--red); }
 
   .hidden{ display:none !important; }
@@ -352,6 +361,7 @@
   var SHOP_OPEN_TIME = "06:30";
   var SHOP_CLOSE_TIME = "15:00";
   var SHOP_CLOSED_DAYS = [0]; // ตรงกับ Date.getDay(): 0=อาทิตย์, 1=จันทร์ ... 6=เสาร์ — ใส่ได้หลายวัน เช่น [0, 1]
+  var CLOSING_SOON_MINUTES = 30; // เหลือเวลาก่อนปิดเท่านี้ (นาที) ขึ้นแถบเร่งสีเหลืองแทนแถบเปิดปกติ
 
   // แก้ตัวเลขตรงนี้ได้เลยถ้าเกณฑ์ฟรีส่ง/ค่าส่งเปลี่ยน — ดู README.md ประกอบ
   // minKm/maxKm ใช้ตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" เพื่อเลือกช่วงที่ตรงกับระยะจริงให้อัตโนมัติ
@@ -874,11 +884,19 @@
       ? " (หยุดทุกวัน" + SHOP_CLOSED_DAYS.map(function (d) { return THAI_DAYS[d]; }).join(", ") + ")"
       : "";
     var hoursText = SHOP_OPEN_TIME + "–" + SHOP_CLOSE_TIME + " น." + closedDaysText;
+    var minutesLeft = closeMinutes - minutesNow;
+    var isClosingSoon = isOpen && minutesLeft <= CLOSING_SOON_MINUTES;
 
-    shopStatus.className = "shop-status " + (isOpen ? "open" : "closed");
-    shopStatus.textContent = isOpen
-      ? "🟢 ร้านเปิดอยู่ตอนนี้ · เปิดถึง " + SHOP_CLOSE_TIME + " น."
-      : "🔴 ร้านปิดอยู่ตอนนี้ · เปิดปกติ " + hoursText;
+    if (!isOpen) {
+      shopStatus.className = "shop-status closed";
+      shopStatus.textContent = "🔴 ร้านปิดอยู่ตอนนี้ · เปิดปกติ " + hoursText;
+    } else if (isClosingSoon) {
+      shopStatus.className = "shop-status closing-soon";
+      shopStatus.textContent = "🟡 ร้านใกล้ปิดแล้ว! เหลืออีก " + minutesLeft + " นาที (ปิด " + SHOP_CLOSE_TIME + " น.) รีบสั่งด่วน";
+    } else {
+      shopStatus.className = "shop-status open";
+      shopStatus.textContent = "🟢 ร้านเปิดอยู่ตอนนี้ · เปิดถึง " + SHOP_CLOSE_TIME + " น.";
+    }
   }
 
   zoneSelect.addEventListener("change", render);
