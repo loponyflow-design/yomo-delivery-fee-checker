@@ -331,11 +331,11 @@
   // ราคาเมนู ใช้ประกอบเซ็ตแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
   // drink: true = แสดงรวมเป็น "เครื่องดื่ม (ชนิดใดก็ได้ xN)" แทนชื่อเมนูจริง กันลูกค้าสับสนว่าต้องได้แก้วนั้นเป๊ะๆ
   var MENU_ITEMS = {
-    riceYomo:  { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
-    riceSpicy: { name: "ข้าวไข่ลูกเขย (พริกเผา เผ็ด)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
-    matcha:    { name: "มัทฉะ ลาเต้", store: 65, online: 80, drink: true },
-    coffee:    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65, drink: true },
-    cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, online: 65, drink: true }
+    riceYomo:  { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69 },
+    riceSpicy: { name: "ข้าวไข่ลูกเขย (พริกเผา เผ็ด)+น้ำพริกหอมกุ้ง", store: 69 },
+    matcha:    { name: "มัทฉะ ลาเต้", store: 65, drink: true },
+    coffee:    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, drink: true },
+    cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, drink: true }
   };
 
   // เซ็ตแนะนำ "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — ร้านจะเอาไปตั้งเป็นเมนูจริงในระบบสั่งซื้อ
@@ -348,9 +348,15 @@
     { name: "เซ็ต D", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 2 }, { key: "cocoa", qty: 1 }] }
   ];
 
-  // ยังไม่มีตัวเลขค่าส่ง/ค่าบริการจริงของ Grab/Lineman/Shopee มาเทียบ (เช็ค Lalamove จากเว็บแล้วไม่มีราคาสาธารณะ)
-  // ใส่ 0 ไว้ก่อน — พอร้านมีตัวเลขจริงค่อยแก้ตรงนี้ ยอดประหยัดรวมท้ายหน้าจะรวมค่านี้เข้าไปอัตโนมัติ
-  var COMPETITOR_DELIVERY_FEE_DIFF = 0;
+  // ราคารวมจริงที่ลูกค้าจ่ายเมื่อสั่งผ่านแอปส่งอาหาร (รวมค่าส่งของแอปในตัวเลขนี้แล้ว)
+  // ทดสอบสั่งจริง 1 ครั้ง/จุด ที่จุดอ้างอิงใกล้ศูนย์กลางแต่ละโซน ราคาแอปเปลี่ยนได้ ทดสอบใหม่แล้วแก้ตรงนี้
+  // ลำดับแถวต้องตรงกับ ZONES ด้านบน (โซน1..โซน4) — คีย์ในแต่ละแถวต้องตรงกับ SETS[].name
+  var APP_PRICE_BY_ZONE = [
+    { "เซ็ต A": 226, "เซ็ต B": 250, "เซ็ต C": 315, "เซ็ต D": 445 }, // โซน 0-1 กม. (ทดสอบที่ 7-11)
+    { "เซ็ต A": 232, "เซ็ต B": 256, "เซ็ต C": 321, "เซ็ต D": 451 }, // โซน 1-3 กม. (ทดสอบที่ เซ็นทรัลปิ่นเกล้า)
+    { "เซ็ต A": 241, "เซ็ต B": 265, "เซ็ต C": 330, "เซ็ต D": 460 }, // โซน 3-5 กม. (ทดสอบที่ รพ.ยันฮี)
+    { "เซ็ต A": 366, "เซ็ต B": 390, "เซ็ต C": 458, "เซ็ต D": 585 }  // โซนเกิน 5 กม. (ทดสอบที่ จตุจักร)
+  ];
 
   var locateBtn     = document.getElementById("locateBtn");
   var geoStatus     = document.getElementById("geoStatus");
@@ -475,6 +481,7 @@
   function fmt(n) { return n.toLocaleString("th-TH"); }
   function baht(n) { return "฿" + fmt(Math.round(n)); }
   function currentZone() { return ZONES[zoneSelect.value]; }
+  function currentZoneIndex() { return Number(zoneSelect.value); }
 
   function makeOptCard(id, tag, title, priceHtml, priceFree, desc, selected, groupName) {
     var lbl = document.createElement("label");
@@ -596,13 +603,25 @@
   }
 
   function setTotals(set) {
-    var store = 0, online = 0;
+    var store = 0;
     set.items.forEach(function (it) {
-      var item = MENU_ITEMS[it.key];
-      store += item.store * it.qty;
-      online += item.online * it.qty;
+      store += MENU_ITEMS[it.key].store * it.qty;
     });
-    return { store: store, online: online };
+    return { store: store };
+  }
+
+  // ราคาสั่งตรงจริงของเซ็ตนี้ที่โซนนี้ = ราคาเซ็ต + ค่าส่งร้าน (0 ถ้าราคาเซ็ตถึงเกณฑ์ฟรีส่งของโซนนั้นอยู่แล้ว)
+  function directPriceForZone(set, zone) {
+    var store = setTotals(set).store;
+    return store + (store >= zone.threshold ? 0 : zone.fee);
+  }
+
+  // ส่วนต่างที่ประหยัดจริงเทียบแอปส่งอาหาร ที่โซน/เซ็ตนี้ — คืน null ถ้าไม่มีข้อมูลราคาแอปสำหรับคู่นี้
+  function appSavings(set, zoneIndex, zone) {
+    var appPrices = APP_PRICE_BY_ZONE[zoneIndex];
+    var appPrice = appPrices ? appPrices[set.name] : undefined;
+    if (appPrice == null) return null;
+    return appPrice - directPriceForZone(set, zone);
   }
 
   // รวมรายการที่ item.drink === true ทั้งหมดในเซ็ตเป็นบรรทัดเดียว "เครื่องดื่ม (ชนิดใดก็ได้ xN)"
@@ -660,8 +679,11 @@
       var statusText = meetsThreshold
         ? "ถึงฟรีส่งโซนนี้ ✅"
         : "ยังไม่ถึงฟรีส่งโซนนี้ (ขาดอีก " + baht(zone.threshold - totals.store) + ")";
-      var desc = setItemsHtml(set) + "<br>ราคาสั่งผ่านแอป " + baht(totals.online) +
-        " — ประหยัด " + baht(totals.online - totals.store) + " • " + statusText;
+      var savings = appSavings(set, currentZoneIndex(), zone);
+      var compareText = (savings != null && savings > 0)
+        ? "ประหยัดกว่าแอปส่งอาหาร " + baht(savings) + " • "
+        : ""; // ≤0 หรือไม่มีข้อมูล — ไม่โชว์ตัวเลขลบ/0 ตัดทิ้งทั้งประโยคไปเลย
+      var desc = setItemsHtml(set) + "<br>" + compareText + statusText;
 
       var tags = [];
       if (set.bestSeller) tags.push("เซ็ตขายดี");
@@ -714,12 +736,18 @@
       return;
     }
 
-    var totals = setTotals(SETS[selectedSetIndex]);
-    var total = (totals.online - totals.store) + COMPETITOR_DELIVERY_FEE_DIFF;
-    totalSaveV.textContent = "ประหยัดรวม " + baht(total);
-    totalSaveBox.classList.remove("hidden");
+    var zone = currentZone();
+    var set = SETS[selectedSetIndex];
+    var savings = appSavings(set, currentZoneIndex(), zone);
 
-    updateFreeShippingProgress(totals.store);
+    if (savings == null || savings <= 0) {
+      totalSaveBox.classList.add("hidden"); // ไม่มีข้อมูล หรือสั่งตรงไม่ได้ถูกกว่าแอปที่โซนนี้ — ไม่โชว์กล่องนี้เลย
+    } else {
+      totalSaveV.textContent = "ประหยัดรวม " + baht(savings);
+      totalSaveBox.classList.remove("hidden");
+    }
+
+    updateFreeShippingProgress(setTotals(set).store);
   }
 
   zoneSelect.addEventListener("change", render);
