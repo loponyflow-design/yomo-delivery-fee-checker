@@ -195,9 +195,8 @@
     margin-top:10px; padding:11px 12px; border-radius:10px;
     background:var(--white); border:2px dashed var(--ink);
     font-family:'JetBrains Mono',monospace; font-size:12px; white-space:pre-line;
-    color:rgba(35,31,32,0.7); display:none;
+    color:rgba(35,31,32,0.7);
   }
-  .note-preview.show{ display:block; }
 
   .copy-toast{ font-size:12px; text-align:center; color:var(--green); margin-top:8px; min-height:16px; font-weight:600; }
   .required-hint{ font-size:12px; text-align:center; color:var(--red); margin-top:8px; min-height:16px; }
@@ -281,13 +280,17 @@
       <div class="trust-item"><span class="tick">✓</span><span>ไม่ต้องโหลดแอปเพิ่ม สั่งจากหน้านี้ได้เลย</span></div>
     </div>
 
+    <section>
+      <p class="step-label">ตรวจสอบรายละเอียดก่อนส่ง</p>
+      <div class="note-preview" id="notePreview"></div>
+      <p class="required-hint" id="requiredHint">กรอกชื่อและเบอร์โทรให้ครบก่อนส่งข้อมูลให้ร้าน</p>
+    </section>
+
     <div class="cta-row">
       <a class="cta" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
       <button class="cta line" id="lineBtn">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE</button>
       <button class="cta secondary" id="copyBtn">คัดลอกไปวางใน Note</button>
     </div>
-    <p class="required-hint" id="requiredHint">กรอกชื่อและเบอร์โทรให้ครบก่อนคัดลอก</p>
-    <div class="note-preview" id="notePreview"></div>
     <p class="copy-toast" id="copyToast"></p>
 
     <p class="footnote">ระยะทางจากปุ่ม "ใช้ตำแหน่งปัจจุบัน" เป็นค่าประมาณ ระยะถนนจริงอาจต่างจากนี้เล็กน้อย</p>
@@ -543,10 +546,6 @@
       : "จัดส่งถึงบ้าน (ค่าส่ง " + baht(zone.fee) + (zone.estimate ? " เริ่มต้น" : "") +
         ", ฟรีถ้าสั่งครบ " + baht(zone.threshold) + ")";
 
-    var setText = selectedSetIndex !== null
-      ? SETS[selectedSetIndex].name + " (" + setItemsText(SETS[selectedSetIndex]) + ")"
-      : "-";
-
     var lines = [
       "📦 เช็คค่าส่ง - " + SHOP_NAME,
       "------------------------------",
@@ -555,20 +554,20 @@
       "ที่อยู่จัดส่ง: " + (address || "-"),
       "ระยะทางโดยประมาณ: " + zone.label,
       "ทางเลือกที่เลือก: " + choiceText,
-      "เซ็ตที่สนใจ: " + setText
+      "เซ็ตที่สนใจ: " + (selectedSetIndex !== null ? SETS[selectedSetIndex].name : "-")
     ];
+    if (selectedSetIndex !== null) lines = lines.concat(setItemsLines(SETS[selectedSetIndex]));
     if (zone.note) lines.push("หมายเหตุ: " + zone.note);
     lines.push("------------------------------");
 
-    notePreview.dataset.text = lines.join("\n");
+    var text = lines.join("\n");
+    notePreview.textContent = text;
+    notePreview.dataset.text = text;
   }
 
   function copySummary() {
     var text = notePreview.dataset.text;
     if (!text) return;
-
-    notePreview.textContent = text;
-    notePreview.classList.add("show");
 
     var done = function () {
       copyToast.textContent = "คัดลอกแล้ว! ไปวางในช่อง Note ที่หน้าสั่งเมนูได้เลย";
@@ -615,12 +614,12 @@
     return { store: store, online: online };
   }
 
-  // ใช้ในสรุปที่คัดลอกไปวาง POS Note (plain text บรรทัดเดียว)
-  function setItemsText(set) {
+  // ใช้ในสรุป/ข้อความที่ส่งให้ร้าน (plain text) — เมนูแต่ละอย่างขึ้นบรรทัดใหม่ให้อ่านง่าย
+  function setItemsLines(set) {
     return set.items.map(function (it) {
       var item = MENU_ITEMS[it.key];
-      return (it.qty > 1 ? it.qty + "x " : "") + item.name;
-    }).join(" + ");
+      return "  • " + (it.qty > 1 ? it.qty + "x " : "") + item.name;
+    });
   }
 
   // ใช้แสดงในการ์ดเลือกเซ็ต (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
