@@ -469,7 +469,8 @@
   });
 
   var fulfillment = "deliver"; // "deliver" | "pickup"
-  var selectedSetIndex = null; // index ของ SETS ที่ลูกค้าคลิกเลือกอยู่ หรือ null ถ้ายังไม่เลือก
+  var CUSTOM_SET_ID = "custom"; // ค่าพิเศษของ selectedSetIndex เมื่อลูกค้าเลือก "เลือกเมนูเอง" แทนเซ็ตแนะนำ
+  var selectedSetIndex = null; // index ของ SETS, CUSTOM_SET_ID, หรือ null ถ้ายังไม่เลือก
 
   function fmt(n) { return n.toLocaleString("th-TH"); }
   function baht(n) { return "฿" + fmt(Math.round(n)); }
@@ -551,6 +552,13 @@
       : "จัดส่งถึงบ้าน (ค่าส่ง " + baht(zone.fee) + (zone.estimate ? " เริ่มต้น" : "") +
         ", ฟรีถ้าสั่งครบ " + baht(zone.threshold) + ")";
 
+    var setLine = "-";
+    if (selectedSetIndex === CUSTOM_SET_ID) {
+      setLine = "เลือกเมนูเอง (สั่งให้ครบ " + baht(zone.threshold) + " ถึงส่งฟรี)";
+    } else if (selectedSetIndex !== null) {
+      setLine = SETS[selectedSetIndex].name;
+    }
+
     var lines = [
       "📦 เช็คค่าส่ง - " + SHOP_NAME,
       "------------------------------",
@@ -559,9 +567,11 @@
       "ที่อยู่จัดส่ง: " + (address || "-"),
       "ระยะทางโดยประมาณ: " + zone.label,
       "ทางเลือกที่เลือก: " + choiceText,
-      "เซ็ตที่สนใจ: " + (selectedSetIndex !== null ? SETS[selectedSetIndex].name : "-")
+      "เซ็ตที่สนใจ: " + setLine
     ];
-    if (selectedSetIndex !== null) lines = lines.concat(setItemsLines(SETS[selectedSetIndex]));
+    if (selectedSetIndex !== null && selectedSetIndex !== CUSTOM_SET_ID) {
+      lines = lines.concat(setItemsLines(SETS[selectedSetIndex]));
+    }
     if (zone.note) lines.push("หมายเหตุ: " + zone.note);
     lines.push("------------------------------");
 
@@ -661,6 +671,17 @@
       card.addEventListener("click", function () { selectSet(i); });
       setList.appendChild(card);
     });
+
+    // ตัวเลือกสุดท้าย: ลูกค้าเลือกเมนูเองอิสระ ไม่ต้องตรงกับเซ็ตแนะนำ ขอแค่ถึงยอดขั้นต่ำฟรีส่งของโซนนี้
+    var customCard = makeOptCard(
+      "setCustom", null, "เลือกเมนูเอง",
+      "ตามที่สั่ง", false,
+      "สั่งเมนูอะไรก็ได้ตามใจ แค่ยอดรวมถึง " + baht(zone.threshold) + " บาทขึ้นไป ก็ได้ส่งฟรีในโซนนี้เหมือนกัน",
+      selectedSetIndex === CUSTOM_SET_ID,
+      "setChoice"
+    );
+    customCard.addEventListener("click", function () { selectSet(CUSTOM_SET_ID); });
+    setList.appendChild(customCard);
   }
 
   function updateFreeShippingProgress(currentOrder) {
@@ -679,7 +700,8 @@
   }
 
   function updateSetSelection() {
-    if (selectedSetIndex === null) {
+    // ไม่ได้เลือกเซ็ตไหนเลย หรือเลือก "เลือกเมนูเอง" — ไม่มีรายการสินค้าจริงให้คิดยอดประหยัด/ยอดสั่งได้
+    if (selectedSetIndex === null || selectedSetIndex === CUSTOM_SET_ID) {
       totalSaveBox.classList.add("hidden");
       updateFreeShippingProgress(0);
       return;
