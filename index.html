@@ -379,9 +379,10 @@
 
   // ราคาเมนู ใช้ประกอบเซ็ตแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
   // drink: true = แสดงรวมเป็น "เครื่องดื่ม (ชนิดใดก็ได้ xN)" แทนชื่อเมนูจริง กันลูกค้าสับสนว่าต้องได้แก้วนั้นเป๊ะๆ
+  // riceVariant: true = แสดงรวมเป็น "ข้าวไข่ลูกเขย YOMO (ซอสชนิดใดก็ได้) xN" เหมือนกัน (ราคาเท่ากันทุกซอสอยู่แล้ว)
   var MENU_ITEMS = {
-    riceYomo:  { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69 },
-    riceSpicy: { name: "ข้าวไข่ลูกเขย (พริกเผา เผ็ด)+น้ำพริกหอมกุ้ง", store: 69 },
+    riceYomo:  { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, riceVariant: true },
+    riceSpicy: { name: "ข้าวไข่ลูกเขย (พริกเผา เผ็ด)+น้ำพริกหอมกุ้ง", store: 69, riceVariant: true },
     matcha:    { name: "มัทฉะ ลาเต้", store: 65, drink: true },
     coffee:    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, drink: true },
     cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, drink: true }
@@ -722,15 +723,21 @@
   // ส่วนรายการอื่น (ข้าว) แสดงชื่อจริงตามเดิม — กันลูกค้าสับสนว่าต้องได้เครื่องดื่มชนิดนั้นเป๊ะๆ
   function setDisplayEntries(set) {
     var entries = [];
+    var riceQty = 0;
     var drinkQty = 0;
     set.items.forEach(function (it) {
       var item = MENU_ITEMS[it.key];
-      if (item.drink) {
+      if (item.riceVariant) {
+        riceQty += it.qty;
+      } else if (item.drink) {
         drinkQty += it.qty;
       } else {
         entries.push((it.qty > 1 ? it.qty + "x " : "") + item.name);
       }
     });
+    if (riceQty > 0) {
+      entries.push("ข้าวไข่ลูกเขย YOMO (ซอสชนิดใดก็ได้)" + (riceQty > 1 ? " x" + riceQty : ""));
+    }
     if (drinkQty > 0) {
       entries.push("เครื่องดื่ม (ชนิดใดก็ได้" + (drinkQty > 1 ? " x" + drinkQty : "") + ")");
     }
