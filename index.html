@@ -329,12 +329,13 @@
   ];
 
   // ราคาเมนู ใช้ประกอบเซ็ตแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
+  // drink: true = แสดงรวมเป็น "เครื่องดื่ม (ชนิดใดก็ได้ xN)" แทนชื่อเมนูจริง กันลูกค้าสับสนว่าต้องได้แก้วนั้นเป๊ะๆ
   var MENU_ITEMS = {
     riceYomo:  { name: "ข้าวไข่ลูกเขย YOMO (ซอสมะขาม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
     riceSpicy: { name: "ข้าวไข่ลูกเขย (พริกเผา เค็ม)+น้ำพริกหอมกุ้ง", store: 69, online: 89 },
-    matcha:    { name: "มัทฉะ ลาเต้", store: 65, online: 80 },
-    coffee:    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65 },
-    cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, online: 65 }
+    matcha:    { name: "มัทฉะ ลาเต้", store: 65, online: 80, drink: true },
+    coffee:    { name: "กาแฟดำ ตัวกลาง หอมเข้ม", store: 55, online: 65, drink: true },
+    cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, online: 65, drink: true }
   };
 
   // เซ็ตแนะนำ "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — ร้านจะเอาไปตั้งเป็นเมนูจริงในระบบสั่งซื้อ
@@ -591,20 +592,33 @@
     return { store: store, online: online };
   }
 
-  // ใช้ในสรุป/ข้อความที่ส่งให้ร้าน (plain text) — เมนูแต่ละอย่างขึ้นบรรทัดใหม่ให้อ่านง่าย
-  function setItemsLines(set) {
-    return set.items.map(function (it) {
+  // รวมรายการที่ item.drink === true ทั้งหมดในเซ็ตเป็นบรรทัดเดียว "เครื่องดื่ม (ชนิดใดก็ได้ xN)"
+  // ส่วนรายการอื่น (ข้าว) แสดงชื่อจริงตามเดิม — กันลูกค้าสับสนว่าต้องได้เครื่องดื่มชนิดนั้นเป๊ะๆ
+  function setDisplayEntries(set) {
+    var entries = [];
+    var drinkQty = 0;
+    set.items.forEach(function (it) {
       var item = MENU_ITEMS[it.key];
-      return "  • " + (it.qty > 1 ? it.qty + "x " : "") + item.name;
+      if (item.drink) {
+        drinkQty += it.qty;
+      } else {
+        entries.push((it.qty > 1 ? it.qty + "x " : "") + item.name);
+      }
     });
+    if (drinkQty > 0) {
+      entries.push("เครื่องดื่ม (ชนิดใดก็ได้" + (drinkQty > 1 ? " x" + drinkQty : "") + ")");
+    }
+    return entries;
+  }
+
+  // ใช้ในสรุป/ข้อความที่ส่งให้ร้าน (plain text) — แต่ละรายการขึ้นบรรทัดใหม่ให้อ่านง่าย
+  function setItemsLines(set) {
+    return setDisplayEntries(set).map(function (t) { return "  • " + t; });
   }
 
   // ใช้แสดงในการ์ดเลือกเซ็ต (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
   function setItemsHtml(set) {
-    return set.items.map(function (it) {
-      var item = MENU_ITEMS[it.key];
-      return "• " + (it.qty > 1 ? it.qty + "x " : "") + item.name;
-    }).join("<br>");
+    return setDisplayEntries(set).map(function (t) { return "• " + t; }).join("<br>");
   }
 
   function selectSet(i) {
