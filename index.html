@@ -615,11 +615,20 @@
     return { store: store, online: online };
   }
 
+  // ใช้ในสรุปที่คัดลอกไปวาง POS Note (plain text บรรทัดเดียว)
   function setItemsText(set) {
     return set.items.map(function (it) {
       var item = MENU_ITEMS[it.key];
       return (it.qty > 1 ? it.qty + "x " : "") + item.name;
     }).join(" + ");
+  }
+
+  // ใช้แสดงในการ์ดเลือกเซ็ต (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
+  function setItemsHtml(set) {
+    return set.items.map(function (it) {
+      var item = MENU_ITEMS[it.key];
+      return "• " + (it.qty > 1 ? it.qty + "x " : "") + item.name;
+    }).join("<br>");
   }
 
   function selectSet(i) {
@@ -648,7 +657,7 @@
       var statusText = meetsThreshold
         ? "ถึงฟรีส่งโซนนี้ ✅"
         : "ยังไม่ถึงฟรีส่งโซนนี้ (ขาดอีก " + baht(zone.threshold - totals.store) + ")";
-      var desc = setItemsText(set) + "<br>ราคาสั่งผ่านแอป " + baht(totals.online) +
+      var desc = setItemsHtml(set) + "<br>ราคาสั่งผ่านแอป " + baht(totals.online) +
         " — ประหยัด " + baht(totals.online - totals.store) + " • " + statusText;
 
       var card = makeOptCard(
