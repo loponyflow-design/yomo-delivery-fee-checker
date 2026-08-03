@@ -208,6 +208,15 @@
   .next-step-hint.done{ color:var(--green); font-weight:600; }
   .required-hint{ font-size:12px; text-align:center; color:var(--red); margin-top:8px; min-height:16px; }
   .footnote{ font-size:11px; color:rgba(35,31,32,0.42); text-align:center; margin-top:18px; line-height:1.6; }
+
+  .share-btn{
+    display:block; width:100%; margin-top:14px; padding:11px 10px;
+    border:2px solid var(--ink); border-radius:10px; background:transparent;
+    color:rgba(35,31,32,0.65); font-family:'Kanit',sans-serif; font-weight:500; font-size:13.5px;
+    cursor:pointer;
+  }
+  .share-btn:active{ transform:translateY(1px); }
+  .share-status{ font-size:12px; text-align:center; color:var(--green); margin:6px 0 0; min-height:15px; font-weight:600; }
   .hidden{ display:none !important; }
 
   input:focus-visible, textarea:focus-visible, select:focus-visible, .cta:focus-visible, .opt:focus-visible{
@@ -298,6 +307,9 @@
     </div>
 
     <p class="footnote">ระยะทางจากปุ่ม "ใช้ตำแหน่งปัจจุบัน" เป็นค่าประมาณ ระยะถนนจริงอาจต่างจากนี้เล็กน้อย</p>
+
+    <button type="button" class="share-btn" id="shareBtn">🔗 แชร์เว็บนี้ให้เพื่อน</button>
+    <p class="share-status" id="shareStatus"></p>
   </main>
 </div>
 
@@ -380,6 +392,8 @@
   var freeshipBox   = document.getElementById("freeshipBox");
   var freeshipFill  = document.getElementById("freeshipFill");
   var freeshipText  = document.getElementById("freeshipText");
+  var shareBtn      = document.getElementById("shareBtn");
+  var shareStatus   = document.getElementById("shareStatus");
 
   posBtn.href = POS_URL;
 
@@ -754,13 +768,63 @@
     updateFreeShippingProgress(setTotals(set).store);
   }
 
+  // จำชื่อ-เบอร์โทรลูกค้าไว้ในเบราว์เซอร์ (localStorage) ลูกค้าประจำกลับมาใช้ครั้งหน้าไม่ต้องพิมพ์ซ้ำ
+  // ไม่จำที่อยู่ไว้ด้วย เพราะที่อยู่จัดส่งอาจเปลี่ยนไปคนละที่ในแต่ละครั้ง ต่างจากชื่อ/เบอร์ที่เป็นข้อมูลคงที่
+  var CONTACT_STORAGE_KEY = "yomo_dfc_contact";
+
+  function loadSavedContact() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY));
+      if (saved && saved.name) nameInput.value = saved.name;
+      if (saved && saved.phone) phoneInput.value = saved.phone;
+    } catch (e) {
+      // localStorage ใช้ไม่ได้ (เช่น private mode บางเบราว์เซอร์) ข้ามไปเฉยๆ ไม่กระทบการใช้งานอื่น
+    }
+  }
+
+  function saveContact() {
+    try {
+      localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify({
+        name: nameInput.value.trim(),
+        phone: phoneInput.value.trim()
+      }));
+    } catch (e) {}
+  }
+
+  function shareApp() {
+    var shareData = {
+      title: SHOP_NAME + " — เช็คค่าส่ง",
+      text: "เช็คค่าส่ง " + SHOP_NAME + " ก่อนตัดสินใจสั่งได้ที่นี่ ไม่ต้องเดา",
+      url: location.href
+    };
+    if (navigator.share) {
+      navigator.share(shareData).catch(function () {}); // ผู้ใช้กดยกเลิกเอง ไม่ต้องโชว์ error
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(location.href).then(function () {
+        shareStatus.textContent = "คัดลอกลิงก์แล้ว! ไปวางแชร์ต่อได้เลย";
+        setTimeout(function () { shareStatus.textContent = ""; }, 4000);
+      }).catch(function () {
+        shareStatus.textContent = location.href; // คัดลอกไม่สำเร็จ (เช่นสิทธิ์ไม่อนุญาต) โชว์ลิงก์ให้กดคัดลอกเอง
+      });
+      return;
+    }
+    shareStatus.textContent = location.href; // fallback สุดท้าย โชว์ลิงก์ให้กดคัดลอกเอง
+  }
+
   zoneSelect.addEventListener("change", render);
   [nameInput, phoneInput, addressInput].forEach(function (el) {
     el.addEventListener("input", function () { updateSummary(currentZone()); });
   });
+  [nameInput, phoneInput].forEach(function (el) {
+    el.addEventListener("input", saveContact);
+  });
 
   lineBtn.addEventListener("click", highlightNextStep);
+  shareBtn.addEventListener("click", shareApp);
 
+  loadSavedContact();
   render();
 })();
 </script>
