@@ -344,7 +344,7 @@
   var SETS = [
     { name: "เซ็ต A", items: [{ key: "riceYomo", qty: 1 }, { key: "coffee", qty: 1 }, { key: "cocoa", qty: 1 }] },
     { name: "เซ็ต B", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "coffee", qty: 1 }] },
-    { name: "เซ็ต C", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 1 }] },
+    { name: "เซ็ต C", bestSeller: true, items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 1 }] },
     { name: "เซ็ต D", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 2 }, { key: "cocoa", qty: 1 }] }
   ];
 
@@ -488,7 +488,10 @@
     lbl.appendChild(input);
 
     var html = "";
-    if (tag) html += '<span class="tag">' + tag + "</span>";
+    if (tag) {
+      var tags = Array.isArray(tag) ? tag : [tag];
+      html += tags.map(function (t) { return '<span class="tag">' + t + "</span>"; }).join(" ");
+    }
     html += '<div class="top-row"><span class="title">' + title + '</span><span class="price' +
       (priceFree ? " free" : "") + '">' + priceHtml + "</span></div>";
     html += '<p class="desc">' + desc + "</p>";
@@ -660,9 +663,13 @@
       var desc = setItemsHtml(set) + "<br>ราคาสั่งผ่านแอป " + baht(totals.online) +
         " — ประหยัด " + baht(totals.online - totals.store) + " • " + statusText;
 
+      var tags = [];
+      if (set.bestSeller) tags.push("เซ็ตขายดี");
+      if (i === recommendedIndex) tags.push("แนะนำสำหรับโซนนี้");
+
       var card = makeOptCard(
         "set" + i,
-        i === recommendedIndex ? "แนะนำสำหรับโซนนี้" : null,
+        tags.length ? tags : null,
         set.name,
         baht(totals.store), false, desc,
         selectedSetIndex === i,
