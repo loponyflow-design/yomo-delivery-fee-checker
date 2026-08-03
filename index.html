@@ -275,6 +275,9 @@
       <textarea id="addressInput" placeholder="เช่น 123/45 หมู่ 5 ใกล้วัด"></textarea>
     </section>
 
+    <p class="menu-hint" id="chooseZoneHint">👆 เลือกระยะทางจากร้านด้านบนก่อน เพื่อดูค่าส่งและขั้นตอนถัดไป</p>
+
+    <div id="afterZoneContent" class="hidden">
     <div class="headline-box" id="headlineBox">
       <p class="k" id="headlineK">ค่าส่งของช่วงนี้</p>
       <p class="v" id="headlineV">-</p>
@@ -337,6 +340,7 @@
 
     <button type="button" class="share-btn" id="shareBtn">🔗 แชร์เว็บนี้ให้เพื่อน</button>
     <p class="share-status" id="shareStatus"></p>
+    </div>
   </main>
 </div>
 
@@ -432,8 +436,19 @@
   var shareBtn      = document.getElementById("shareBtn");
   var shareStatus   = document.getElementById("shareStatus");
   var shopStatus    = document.getElementById("shopStatus");
+  var afterZoneContent = document.getElementById("afterZoneContent");
+  var chooseZoneHint   = document.getElementById("chooseZoneHint");
 
   posBtn.href = POS_URL;
+
+  // placeholder เริ่มต้นไม่ผูกกับโซนไหนเลย บังคับให้ลูกค้าต้องเลือกจริง (เปลี่ยนค่า) ก่อนถึงจะเห็นราคา/ขั้นตอนถัดไป
+  // ลดข้อมูลที่โชว์ทีเดียวตอนเข้าเว็บครั้งแรก กันความสับสน
+  var placeholderOpt = document.createElement("option");
+  placeholderOpt.value = "";
+  placeholderOpt.disabled = true;
+  placeholderOpt.selected = true;
+  placeholderOpt.textContent = "-- เลือกระยะทาง --";
+  zoneSelect.appendChild(placeholderOpt);
 
   ZONES.forEach(function (z, i) {
     var opt = document.createElement("option");
@@ -576,6 +591,14 @@
   }
 
   function render() {
+    if (zoneSelect.value === "") {
+      afterZoneContent.classList.add("hidden");
+      chooseZoneHint.classList.remove("hidden");
+      return;
+    }
+    chooseZoneHint.classList.add("hidden");
+    afterZoneContent.classList.remove("hidden");
+
     var zone = currentZone();
 
     // หัวเรื่องใหญ่: ตอบคำถามที่ลูกค้ากลัวที่สุดตั้งแต่แรกเห็น — "ต้องจ่ายค่าส่งไหม เท่าไหร่"
@@ -617,6 +640,8 @@
   }
 
   function updateSummary(zone) {
+    if (!zone) return; // ยังไม่ได้เลือกระยะทาง (placeholder) — ยังไม่มีอะไรให้สรุป
+
     var name = nameInput.value.trim();
     var phone = phoneInput.value.trim();
     var address = addressInput.value.trim();
