@@ -217,6 +217,16 @@
   }
   .share-btn:active{ transform:translateY(1px); }
   .share-status{ font-size:12px; text-align:center; color:var(--green); margin:6px 0 0; min-height:15px; font-weight:600; }
+
+  .shop-status{
+    display:flex; align-items:center; gap:8px;
+    padding:11px 14px; border-radius:12px; margin-bottom:14px;
+    font-family:'Kanit',sans-serif; font-weight:500; font-size:13px; line-height:1.4;
+    border:2.5px solid var(--ink);
+  }
+  .shop-status.open{ background:var(--green-soft); color:var(--green); }
+  .shop-status.closed{ background:var(--red-soft); color:var(--red); }
+
   .hidden{ display:none !important; }
 
   input:focus-visible, textarea:focus-visible, select:focus-visible, .cta:focus-visible, .opt:focus-visible{
@@ -235,6 +245,8 @@
   </header>
 
   <main>
+    <div class="shop-status" id="shopStatus"></div>
+
     <section>
       <p class="step-label">ขั้นตอนที่ 1/4 · ที่อยู่จัดส่ง</p>
 
@@ -328,6 +340,11 @@
   // ตัวคูณประมาณระยะทางถนนจริงจากระยะเส้นตรง (นกบิน) — ปรับได้ถ้ารู้สึกว่าระบบเลือกช่วงผิดบ่อย
   var ROAD_FACTOR = 1.3;
 
+  // เวลาทำการร้าน ใช้โชว์สถานะ "เปิด/ปิดอยู่ตอนนี้" ที่หัวเว็บ (เทียบกับเวลา+วันในเครื่องของลูกค้า)
+  var SHOP_OPEN_TIME = "06:30";
+  var SHOP_CLOSE_TIME = "15:00";
+  var SHOP_CLOSED_DAYS = [0]; // ตรงกับ Date.getDay(): 0=อาทิตย์, 1=จันทร์ ... 6=เสาร์ — ใส่ได้หลายวัน เช่น [0, 1]
+
   // แก้ตัวเลขตรงนี้ได้เลยถ้าเกณฑ์ฟรีส่ง/ค่าส่งเปลี่ยน — ดู README.md ประกอบ
   // minKm/maxKm ใช้ตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" เพื่อเลือกช่วงที่ตรงกับระยะจริงให้อัตโนมัติ
   var ZONES = [
@@ -394,6 +411,7 @@
   var freeshipText  = document.getElementById("freeshipText");
   var shareBtn      = document.getElementById("shareBtn");
   var shareStatus   = document.getElementById("shareStatus");
+  var shopStatus    = document.getElementById("shopStatus");
 
   posBtn.href = POS_URL;
 
@@ -813,6 +831,33 @@
     shareStatus.textContent = location.href; // fallback สุดท้าย โชว์ลิงก์ให้กดคัดลอกเอง
   }
 
+  var THAI_DAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+
+  function timeToMinutes(hhmm) {
+    var parts = hhmm.split(":");
+    return Number(parts[0]) * 60 + Number(parts[1]);
+  }
+
+  // เช็คว่าร้านเปิดอยู่ไหม "ตอนนี้" ตามเวลา+วันในเครื่องของลูกค้า (ไม่ได้เดาว่าจะเปิดอีกทีเมื่อไหร่ แค่บอกสถานะปัจจุบัน + ตารางเวลาให้ครบ)
+  function renderShopStatus() {
+    var now = new Date();
+    var minutesNow = now.getHours() * 60 + now.getMinutes();
+    var openMinutes = timeToMinutes(SHOP_OPEN_TIME);
+    var closeMinutes = timeToMinutes(SHOP_CLOSE_TIME);
+    var isClosedDay = SHOP_CLOSED_DAYS.indexOf(now.getDay()) !== -1;
+    var isOpen = !isClosedDay && minutesNow >= openMinutes && minutesNow < closeMinutes;
+
+    var closedDaysText = SHOP_CLOSED_DAYS.length
+      ? " (หยุดทุกวัน" + SHOP_CLOSED_DAYS.map(function (d) { return THAI_DAYS[d]; }).join(", ") + ")"
+      : "";
+    var hoursText = SHOP_OPEN_TIME + "–" + SHOP_CLOSE_TIME + " น." + closedDaysText;
+
+    shopStatus.className = "shop-status " + (isOpen ? "open" : "closed");
+    shopStatus.textContent = isOpen
+      ? "🟢 ร้านเปิดอยู่ตอนนี้ · เปิดถึง " + SHOP_CLOSE_TIME + " น."
+      : "🔴 ร้านปิดอยู่ตอนนี้ · เปิดปกติ " + hoursText;
+  }
+
   zoneSelect.addEventListener("change", render);
   [nameInput, phoneInput, addressInput].forEach(function (el) {
     el.addEventListener("input", function () { updateSummary(currentZone()); });
@@ -825,6 +870,7 @@
   shareBtn.addEventListener("click", shareApp);
 
   loadSavedContact();
+  renderShopStatus();
   render();
 })();
 </script>
