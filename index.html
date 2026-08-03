@@ -447,6 +447,9 @@
         var estKm = straightKm * ROAD_FACTOR;
         var idx = zoneIndexForKm(estKm);
         zoneSelect.value = idx;
+        // ลิงก์ปักหมุด Google Maps จากพิกัดจริงตรงจุดที่ลูกค้ากดปุ่ม — แม่นกว่าที่อยู่ที่เดาจากข้อความเสมอ
+        // แนบไปในสรุปที่ส่งให้ร้าน ให้ไรเดอร์กดเปิดหมุดได้ตรงจุดโดยไม่ต้องพึ่งบ้านเลขที่/คำบรรยาย
+        gpsPinUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
         var distMsg = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม. — เลือกช่วง \"" + ZONES[idx].label + "\" ให้อัตโนมัติ";
         geoStatus.textContent = distMsg + " (กำลังค้นหาที่อยู่...)";
         locateBtn.disabled = false;
@@ -456,25 +459,27 @@
           var guess = addressFromGeocode(data);
           if (guess && !addressInput.value.trim()) {
             addressInput.value = guess;
-            geoStatus.textContent = distMsg + " • เติมที่อยู่คร่าวๆ ให้แล้ว เพิ่มบ้านเลขที่/จุดสังเกตได้ถ้าต้องการ";
+            geoStatus.textContent = distMsg + " • เติมที่อยู่คร่าวๆ + ปักหมุดตำแหน่งจริงให้แล้ว เพิ่มบ้านเลขที่/จุดสังเกตได้ถ้าต้องการ";
             updateSummary(currentZone());
           } else {
-            geoStatus.textContent = distMsg;
+            geoStatus.textContent = distMsg + " • ปักหมุดตำแหน่งจริงให้แล้ว";
           }
         }).catch(function () {
-          geoStatus.textContent = distMsg;
+          geoStatus.textContent = distMsg + " • ปักหมุดตำแหน่งจริงให้แล้ว";
         });
       },
       function () {
         geoStatus.textContent = "ไม่สามารถระบุตำแหน่งได้ กรุณาเลือกระยะทางเองด้านล่าง";
         locateBtn.disabled = false;
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000 } // ขอพิกัดจากชิป GPS จริงแทนการประมาณจาก wifi/cell ให้แม่นขึ้น
     );
   });
 
   var fulfillment = "deliver"; // "deliver" | "pickup"
   var CUSTOM_SET_ID = "custom"; // ค่าพิเศษของ selectedSetIndex เมื่อลูกค้าเลือก "เลือกเมนูเอง" แทนเซ็ตแนะนำ
   var selectedSetIndex = null; // index ของ SETS, CUSTOM_SET_ID, หรือ null ถ้ายังไม่เลือก
+  var gpsPinUrl = null; // ลิงก์ปักหมุด Google Maps จากพิกัด GPS จริง ตั้งค่าตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" สำเร็จ
 
   function fmt(n) { return n.toLocaleString("th-TH"); }
   function baht(n) { return "฿" + fmt(Math.round(n)); }
@@ -577,6 +582,7 @@
       "ทางเลือกที่เลือก: " + choiceText,
       "เซ็ตที่สนใจ: " + setLine
     ];
+    if (gpsPinUrl) lines.push("พิกัดตำแหน่ง (GPS): " + gpsPinUrl);
     if (selectedSetIndex !== null && selectedSetIndex !== CUSTOM_SET_ID) {
       lines = lines.concat(setItemsLines(SETS[selectedSetIndex]));
     }
