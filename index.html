@@ -190,6 +190,12 @@
   .cta:disabled{ opacity:.45; cursor:default; }
   /* เขียว LINE ของแบรนด์ ใช้เฉพาะปุ่มนี้เพื่อให้ลูกค้าจำสัญลักษณ์ LINE ได้ทันที ไม่ใช่สีในธีมร้าน */
   .cta.line{ background:#06C755; color:var(--white); }
+  /* หลังกดส่ง LINE แล้ว ปุ่ม "สั่งเลย" สลับจาก secondary เป็นสีหลัก + เรืองแสงเบาๆ ดึงสายตาให้กดขั้นตอนต่อไป */
+  .cta.ready{ background:var(--red); color:var(--white); font-weight:600; font-size:16px; padding:16px 10px; animation:ctaPulse 1.4s ease-out 2; }
+  @keyframes ctaPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(191,30,46,0.45); }
+    50%{ box-shadow:0 0 0 9px rgba(191,30,46,0); }
+  }
 
   .note-preview{
     margin-top:10px; padding:11px 12px; border-radius:10px;
@@ -198,7 +204,8 @@
     color:rgba(35,31,32,0.7);
   }
 
-  .copy-toast{ font-size:12px; text-align:center; color:var(--green); margin-top:8px; min-height:16px; font-weight:600; }
+  .next-step-hint{ font-size:12px; text-align:center; color:rgba(35,31,32,0.55); margin:0; min-height:16px; }
+  .next-step-hint.done{ color:var(--green); font-weight:600; }
   .required-hint{ font-size:12px; text-align:center; color:var(--red); margin-top:8px; min-height:16px; }
   .footnote{ font-size:11px; color:rgba(35,31,32,0.42); text-align:center; margin-top:18px; line-height:1.6; }
   .hidden{ display:none !important; }
@@ -287,11 +294,10 @@
     </section>
 
     <div class="cta-row">
-      <a class="cta" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
       <button class="cta line" id="lineBtn">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE</button>
-      <button class="cta secondary" id="copyBtn">คัดลอกไปวางใน Note</button>
+      <p class="next-step-hint" id="nextStepHint">ส่งข้อมูลให้ร้านก่อน แล้วกดปุ่มด้านล่างเพื่อไปสั่งเมนูต่อ</p>
+      <a class="cta secondary" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
     </div>
-    <p class="copy-toast" id="copyToast"></p>
 
     <p class="footnote">ระยะทางจากปุ่ม "ใช้ตำแหน่งปัจจุบัน" เป็นค่าประมาณ ระยะถนนจริงอาจต่างจากนี้เล็กน้อย</p>
   </main>
@@ -358,12 +364,11 @@
   var nameInput     = document.getElementById("nameInput");
   var phoneInput    = document.getElementById("phoneInput");
   var addressInput  = document.getElementById("addressInput");
-  var copyBtn       = document.getElementById("copyBtn");
   var lineBtn       = document.getElementById("lineBtn");
   var requiredHint  = document.getElementById("requiredHint");
   var notePreview   = document.getElementById("notePreview");
-  var copyToast     = document.getElementById("copyToast");
   var posBtn        = document.getElementById("posBtn");
+  var nextStepHint  = document.getElementById("nextStepHint");
   var setList       = document.getElementById("setList");
   var totalSaveBox  = document.getElementById("totalSaveBox");
   var totalSaveV    = document.getElementById("totalSaveV");
@@ -537,7 +542,6 @@
     var address = addressInput.value.trim();
 
     var ready = name && phone;
-    copyBtn.disabled = !ready;
     lineBtn.disabled = !ready;
     requiredHint.style.display = ready ? "none" : "block";
 
@@ -565,43 +569,17 @@
     notePreview.dataset.text = text;
   }
 
-  function copySummary() {
-    var text = notePreview.dataset.text;
-    if (!text) return;
-
-    var done = function () {
-      copyToast.textContent = "คัดลอกแล้ว! ไปวางในช่อง Note ที่หน้าสั่งเมนูได้เลย";
-      setTimeout(function () { copyToast.textContent = ""; }, 4000);
-    };
-    var fallbackCopy = function () {
-      var tmp = document.createElement("textarea");
-      tmp.value = text;
-      tmp.style.position = "fixed";
-      tmp.style.opacity = "0";
-      document.body.appendChild(tmp);
-      tmp.focus();
-      tmp.select();
-      try {
-        document.execCommand("copy");
-        done();
-      } catch (e) {
-        copyToast.textContent = "คัดลอกไม่สำเร็จ กรุณากดค้างที่ข้อความด้านบนแล้วคัดลอกเอง";
-      }
-      document.body.removeChild(tmp);
-    };
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, fallbackCopy);
-    } else {
-      fallbackCopy();
-    }
-  }
-
   function sendToLine() {
     var text = notePreview.dataset.text;
     if (!text) return;
     var url = "https://line.me/R/oaMessage/" + LINE_OA_ID + "/?" + encodeURIComponent(text);
     window.open(url, "_blank", "noopener");
+
+    // เน้นปุ่ม "สั่งเลย" ให้เป็นขั้นตอนถัดไปที่ชัดเจน หลังลูกค้าส่งข้อมูลให้ร้านแล้ว
+    posBtn.classList.remove("secondary");
+    posBtn.classList.add("ready");
+    nextStepHint.textContent = "✅ ส่งข้อมูลแล้ว! กดปุ่มด้านล่างเพื่อไปสั่งเมนูต่อได้เลย";
+    nextStepHint.classList.add("done");
   }
 
   function setTotals(set) {
@@ -707,7 +685,6 @@
     el.addEventListener("input", function () { updateSummary(currentZone()); });
   });
 
-  copyBtn.addEventListener("click", copySummary);
   lineBtn.addEventListener("click", sendToLine);
 
   render();
