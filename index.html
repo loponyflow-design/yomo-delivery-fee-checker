@@ -187,7 +187,7 @@
   }
   .cta:active{ transform:translateY(1px); }
   .cta.secondary{ background:var(--white); color:var(--ink); font-weight:500; font-size:15px; padding:13px 10px; }
-  .cta:disabled{ opacity:.45; cursor:default; }
+  .cta:disabled, .cta.disabled{ opacity:.45; cursor:default; pointer-events:none; }
   /* เขียว LINE ของแบรนด์ ใช้เฉพาะปุ่มนี้เพื่อให้ลูกค้าจำสัญลักษณ์ LINE ได้ทันที ไม่ใช่สีในธีมร้าน */
   .cta.line{ background:#06C755; color:var(--white); }
   /* หลังกดส่ง LINE แล้ว ปุ่ม "สั่งเลย" สลับจาก secondary เป็นสีหลัก + เรืองแสงเบาๆ ดึงสายตาให้กดขั้นตอนต่อไป */
@@ -294,7 +294,7 @@
     </section>
 
     <div class="cta-row">
-      <button class="cta line" id="lineBtn">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE</button>
+      <a class="cta line" id="lineBtn" href="#" target="_blank" rel="noopener">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE</a>
       <p class="next-step-hint" id="nextStepHint">ส่งข้อมูลให้ร้านก่อน แล้วกดปุ่มด้านล่างเพื่อไปสั่งเมนูต่อ</p>
       <a class="cta secondary" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
     </div>
@@ -542,7 +542,7 @@
     var address = addressInput.value.trim();
 
     var ready = name && phone;
-    lineBtn.disabled = !ready;
+    lineBtn.classList.toggle("disabled", !ready);
     requiredHint.style.display = ready ? "none" : "block";
 
     var choiceText = fulfillment === "pickup"
@@ -567,14 +567,13 @@
     var text = lines.join("\n");
     notePreview.textContent = text;
     notePreview.dataset.text = text;
+    // href จริงบนแท็ก <a> (ไม่ใช่ window.open ทาง JS) เพราะบนมือถือ/in-app browser
+    // (เช่นเปิดจากแอป LINE เอง) window.open มักถูกตีความเป็น redirect หน้าเดิมแทนเปิดแท็บใหม่
+    // ทำให้ลูกค้ากลับมาเจอหน้าขาวค้างโหลด — ใช้ <a target="_blank"> ให้เบราว์เซอร์จัดการเอง แม่นยำกว่า
+    lineBtn.href = "https://line.me/R/oaMessage/" + LINE_OA_ID + "/?" + encodeURIComponent(text);
   }
 
-  function sendToLine() {
-    var text = notePreview.dataset.text;
-    if (!text) return;
-    var url = "https://line.me/R/oaMessage/" + LINE_OA_ID + "/?" + encodeURIComponent(text);
-    window.open(url, "_blank", "noopener");
-
+  function highlightNextStep() {
     // เน้นปุ่ม "สั่งเลย" ให้เป็นขั้นตอนถัดไปที่ชัดเจน หลังลูกค้าส่งข้อมูลให้ร้านแล้ว
     posBtn.classList.remove("secondary");
     posBtn.classList.add("ready");
@@ -685,7 +684,7 @@
     el.addEventListener("input", function () { updateSummary(currentZone()); });
   });
 
-  lineBtn.addEventListener("click", sendToLine);
+  lineBtn.addEventListener("click", highlightNextStep);
 
   render();
 })();
