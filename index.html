@@ -156,6 +156,7 @@
   }
   /* ใช้ตอนพื้นที่ลูกค้าอยู่นอกระยะจัดส่งจริงของร้าน (เข้มกว่า warn-box ปกติที่แค่เตือนให้โทรเช็ค) */
   .warn-box.danger{ background:var(--red-soft); border-style:solid; color:var(--red); font-weight:500; }
+  .warn-box a{ color:inherit; font-weight:700; text-decoration:underline; }
 
   /* เมนูแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
   .menu-hint{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; margin:0 0 10px; }
@@ -477,8 +478,12 @@
           // ไม่แตะ zoneSelect/gpsPinUrl/render() เลย กันไม่ให้หน้าเว็บโชว์ราคาที่เข้าใจผิดว่าส่งได้
           locateBtn.disabled = false;
           geoStatus.textContent = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม.";
-          outOfRangeWarnText.textContent = "พื้นที่นี้อยู่นอกระยะจัดส่งของร้าน (ไม่เกิน " + MAX_DELIVERY_KM +
-            " กม.) กรอกชื่อ+เบอร์แล้วทักแชทร้านทาง LINE เพื่อสอบถามเพิ่มเติมได้เลย";
+          // ฟอร์มชื่อ+เบอร์และปุ่มส่ง LINE ยังไม่โผล่ในสถานะนี้ (ต้องเลือกโซนในระยะก่อน render() ถึงจะแสดง)
+          // แนบลิงก์ทักแชท LINE ตรงๆ ในนี้เลย ไม่ต้องพึ่งฟอร์ม/ปุ่มที่ยังซ่อนอยู่
+          // ใช้ LINE_OA_ID ดิบๆ ไม่ encode (แบบเดียวกับ lineBtn.href ด้านล่าง) ให้ตรงกับฟอร์แมตที่ LINE ใช้จริง
+          outOfRangeWarnText.innerHTML = "พื้นที่นี้อยู่นอกระยะจัดส่งของร้าน (ไม่เกิน " + MAX_DELIVERY_KM +
+            " กม.) แต่ทักแชทร้านทาง LINE เพื่อสอบถามเพิ่มเติมได้เลย: " +
+            '<a href="https://line.me/R/ti/p/' + LINE_OA_ID + '" target="_blank" rel="noopener">เปิดแชท LINE</a>';
           outOfRangeWarn.classList.remove("hidden");
           return;
         }
