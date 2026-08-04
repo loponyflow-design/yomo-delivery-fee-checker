@@ -264,7 +264,6 @@
       <p class="menu-hint">นี่คือตัวอย่างชุดเมนูที่ช่วยให้ถึงเกณฑ์ส่งฟรีเท่านั้น</p>
       <p class="menu-hint">หากมีเมนูที่ต้องการ หรืออยากดูภาพสินค้า กดปุ่มส่งข้อมูลจัดส่งด้านล่างได้เลย</p>
       <div class="options" id="setList"></div>
-      <p class="menu-hint" id="customOrderHint"></p>
     </section>
 
     <section>
@@ -381,7 +380,6 @@
   var notePreview   = document.getElementById("notePreview");
   var nextStepHint  = document.getElementById("nextStepHint");
   var setList       = document.getElementById("setList");
-  var customOrderHint = document.getElementById("customOrderHint");
   var shareBtn      = document.getElementById("shareBtn");
   var shareStatus   = document.getElementById("shareStatus");
   var shopStatus    = document.getElementById("shopStatus");
@@ -746,9 +744,6 @@
       var card = makeInfoCard(tags.length ? tags : null, set.name, baht(totals.store), false, desc);
       setList.appendChild(card);
     });
-
-    customOrderHint.textContent = "ไม่อยากสั่งตามเมนูแนะนำ? สั่งเมนูอะไรก็ได้ตามใจ แค่ยอดรวมถึง " +
-      baht(zone.threshold) + " บาทขึ้นไป ก็ได้ส่งฟรีในโซนนี้เหมือนกัน บอกรายละเอียดกับร้านได้เลยทาง LINE";
   }
 
   // จำชื่อ-เบอร์โทรลูกค้าไว้ในเบราว์เซอร์ (localStorage) ลูกค้าประจำกลับมาใช้ครั้งหน้าไม่ต้องพิมพ์ซ้ำ
