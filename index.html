@@ -116,22 +116,6 @@
     color:rgba(255,255,255,0.7); margin:8px 0 0;
   }
 
-  /* แถบความคืบหน้าส่งฟรี — เชื่อมกับยอดที่ติ๊กใน section เทียบราคา */
-  .freeship-box{ margin-bottom:14px; }
-  .freeship-track{
-    height:10px; border-radius:6px; background:var(--paper);
-    border:2px solid var(--ink); overflow:hidden;
-  }
-  .freeship-fill{
-    height:100%; width:0%; background:var(--red); border-radius:4px;
-    transition:width .25s ease;
-  }
-  .freeship-box.met .freeship-fill{ background:var(--green); }
-  .freeship-text{
-    font-size:12.5px; color:rgba(35,31,32,0.7); text-align:center; margin:8px 0 0;
-  }
-  .freeship-box.met .freeship-text{ color:var(--green); font-weight:600; }
-
   /* option cards: the two fulfillment choices */
   .options{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
   .opt{
@@ -291,11 +275,6 @@
       <p class="menu-hint" id="customOrderHint"></p>
     </section>
 
-    <div class="freeship-box" id="freeshipBox">
-      <div class="freeship-track"><div class="freeship-fill" id="freeshipFill"></div></div>
-      <p class="freeship-text" id="freeshipText">-</p>
-    </div>
-
     <section>
       <p class="step-label">ขั้นตอนที่ 2/3 · ข้อมูลติดต่อ (ใช้ตอนส่งข้อมูลให้ร้าน)</p>
 
@@ -309,7 +288,7 @@
     <div class="trust-strip">
       <div class="trust-item"><span class="tick">✓</span><span>สั่งตรงกับร้าน ไม่ผ่านแอปตัวกลาง</span></div>
       <div class="trust-item"><span class="tick">✓</span><span>ค่าส่งคำนวณตรงไปตรงมา ไม่มีค่าธรรมเนียมแฝง ไม่ปัดเศษ</span></div>
-      <div class="trust-item"><span class="tick">✓</span><span>ไม่ต้องโหลดแอปเพิ่ม สั่งจากหน้านี้ได้เลย</span></div>
+      <div class="trust-item"><span class="tick">✓</span><span>ไม่ต้องโหลดแอปเพิ่ม ทักไลน์สั่งได้เลย</span></div>
     </div>
 
     <section>
@@ -415,9 +394,6 @@
   var nextStepHint  = document.getElementById("nextStepHint");
   var setList       = document.getElementById("setList");
   var customOrderHint = document.getElementById("customOrderHint");
-  var freeshipBox   = document.getElementById("freeshipBox");
-  var freeshipFill  = document.getElementById("freeshipFill");
-  var freeshipText  = document.getElementById("freeshipText");
   var shareBtn      = document.getElementById("shareBtn");
   var shareStatus   = document.getElementById("shareStatus");
   var shopStatus    = document.getElementById("shopStatus");
@@ -635,7 +611,6 @@
 
     updateSummary(zone);
     renderSetList();
-    updateFreeShippingProgress(0); // เตือนยอดขั้นต่ำฟรีส่งของโซนนี้เฉยๆ ไม่มีเมนูที่ "เลือก" ให้คิดยอดจริงแล้ว
   }
 
   function updateSummary(zone) {
@@ -767,21 +742,6 @@
 
     customOrderHint.textContent = "ไม่อยากสั่งตามเมนูแนะนำ? สั่งเมนูอะไรก็ได้ตามใจ แค่ยอดรวมถึง " +
       baht(zone.threshold) + " บาทขึ้นไป ก็ได้ส่งฟรีในโซนนี้เหมือนกัน บอกรายละเอียดกับร้านได้เลยทาง LINE";
-  }
-
-  function updateFreeShippingProgress(currentOrder) {
-    var zone = currentZone();
-    var pct = Math.min(100, (currentOrder / zone.threshold) * 100);
-    freeshipFill.style.width = pct + "%";
-
-    if (currentOrder >= zone.threshold) {
-      freeshipBox.classList.add("met");
-      freeshipText.textContent = "ถึงเกณฑ์ส่งฟรีแล้ว ✅";
-    } else {
-      freeshipBox.classList.remove("met");
-      var remaining = zone.threshold - currentOrder;
-      freeshipText.textContent = "อีก " + fmt(remaining) + " บาทถึงส่งฟรี 🎉";
-    }
   }
 
   // จำชื่อ-เบอร์โทรลูกค้าไว้ในเบราว์เซอร์ (localStorage) ลูกค้าประจำกลับมาใช้ครั้งหน้าไม่ต้องพิมพ์ซ้ำ
