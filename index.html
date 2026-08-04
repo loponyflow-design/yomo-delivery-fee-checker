@@ -338,7 +338,7 @@
     { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 140, fee: 38, minKm: 0, maxKm: 1 },
     { label: "1-3 กม.",              threshold: 190, fee: 50, minKm: 1, maxKm: 3 },
     { label: "3-5 กม.",              threshold: 250, fee: 65, minKm: 3, maxKm: 5 },
-    { label: "5-10 กม.",             threshold: 340, fee: 90, estimate: true, minKm: 5, maxKm: 10,
+    { label: "5-10 กม.",             threshold: 340, fee: 90, minKm: 5, maxKm: 10,
       note: "ระยะค่อนข้างไกล ทักแชทร้านทาง LINE ยืนยันก่อนสั่งได้ถ้าไม่แน่ใจ" }
   ];
 
@@ -577,18 +577,19 @@
     var zone = currentZone();
 
     // หัวเรื่องใหญ่: ตอบคำถามที่ลูกค้ากลัวที่สุดตั้งแต่แรกเห็น — "ต้องจ่ายค่าส่งไหม เท่าไหร่"
+    // ค่าส่งที่โชว์เป็นค่าประมาณเสมอ (ไม่ใช่ราคาสุดท้ายตายตัว) เผื่อระยะทางจริงคลาดเคลื่อนจากที่ระบบคำนวณ
     headlineBox.classList.toggle("free", false);
     headlineK.textContent = "ค่าส่งของช่วง " + zone.label;
-    headlineV.textContent = (zone.estimate ? "เริ่มต้น " : "") + baht(zone.fee);
+    headlineV.textContent = "ประมาณ " + baht(zone.fee);
     headlineSub.textContent = "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาท";
 
     optionsBox.innerHTML = "";
 
     var deliverCard = makeOptCard(
       "optDeliver", null, "จัดส่งถึงบ้าน",
-      (zone.estimate ? "เริ่มต้น " : "") + baht(zone.fee), false,
+      "ประมาณ " + baht(zone.fee), false,
       "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาทขึ้นไป" +
-        (zone.estimate ? " (ค่าส่งเป็นค่าเริ่มต้น อาจเปลี่ยนแปลงตามระยะจริง)" : ""),
+        " (ค่าส่งเป็นค่าประมาณ อาจเปลี่ยนแปลงตามระยะทางจริง)",
       fulfillment === "deliver"
     );
     deliverCard.addEventListener("click", function () { fulfillment = "deliver"; render(); });
@@ -626,7 +627,7 @@
 
     var choiceText = fulfillment === "pickup"
       ? "มารับเองที่ร้าน (ไม่มีค่าส่ง)"
-      : "จัดส่งถึงบ้าน (ค่าส่ง " + baht(zone.fee) + (zone.estimate ? " เริ่มต้น" : "") +
+      : "จัดส่งถึงบ้าน (ค่าส่งประมาณ " + baht(zone.fee) +
         ", ฟรีถ้าสั่งครบ " + baht(zone.threshold) + ")";
 
     var lines = [
