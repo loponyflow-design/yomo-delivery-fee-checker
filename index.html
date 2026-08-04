@@ -337,18 +337,15 @@
 
   // แก้ตัวเลขตรงนี้ได้เลยถ้าเกณฑ์ฟรีส่ง/ค่าส่งเปลี่ยน — ดู README.md ประกอบ
   // minKm/maxKm ใช้ตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" เพื่อเลือกช่วงที่ตรงกับระยะจริงให้อัตโนมัติ
-  // ค่าส่ง (fee) อ้างอิงจากราคาคอลัมน์ "ปกติ" ที่เจ้าของร้านเทียบราคาแอปส่งอาหารจริง ณ จุดขอบเขตโซน (1/3/5/10 กม.) เมื่อ 2026-08-04
+  // ค่าส่งโชว์เป็นช่วงเสมอ (feeMin-feeMax) ไล่ระดับขึ้นตามระยะทางต่อเนื่องกันทุกโซน (feeMax โซนก่อน = feeMin โซนถัดไป)
+  // โซนไกลสุดไม่มี feeMax (ปลายเปิด) โชว์เป็น "feeMin บาทขึ้นไป" แทน
   var ZONES = [
-    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 150, fee: 64, minKm: 0, maxKm: 1 },
-    { label: "1-3 กม.",              threshold: 190, fee: 62, minKm: 1, maxKm: 3 },
-    { label: "3-5 กม.",              threshold: 250, fee: 89, minKm: 3, maxKm: 5 },
-    { label: "5-10 กม.",             threshold: 340, fee: 86, minKm: 5, maxKm: 10,
+    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 150, feeMin: 38, feeMax: 50, minKm: 0, maxKm: 1 },
+    { label: "1-3 กม.",              threshold: 190, feeMin: 50, feeMax: 65, minKm: 1, maxKm: 3 },
+    { label: "3-5 กม.",              threshold: 250, feeMin: 65, feeMax: 90, minKm: 3, maxKm: 5 },
+    { label: "5-10 กม.",             threshold: 340, feeMin: 90, feeMax: null, minKm: 5, maxKm: 10,
       note: "ระยะค่อนข้างไกล ทักแชทร้านทาง LINE ยืนยันก่อนสั่งได้ถ้าไม่แน่ใจ" }
   ];
-
-  // ถ้าระยะทางที่ตรวจจากปุ่ม GPS อยู่ใกล้รอยต่อโซนมากกว่านี้ (กม.) จะโชว์ค่าส่งเป็นช่วง (คาบเกี่ยว 2 โซน)
-  // แทนตัวเลขเดียว เผื่อระยะทางถนนจริงคลาดเคลื่อนจนตกไปอีกโซนหนึ่ง
-  var BOUNDARY_BUFFER_KM = 0.3;
 
   // ราคาเมนู ใช้ประกอบเซ็ทแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
   // drink: true = แสดงรวมเป็น "เครื่องดื่ม (ชนิดใดก็ได้) xN" แทนชื่อเมนูจริง กันลูกค้าสับสนว่าต้องได้แก้วนั้นเป๊ะๆ
@@ -441,14 +438,6 @@
     return ZONES.length - 1;
   }
 
-  // ถ้า km อยู่ใกล้รอยต่อโซนภายใน BOUNDARY_BUFFER_KM คืนโซนข้างเคียงที่คาบเกี่ยวกัน (ไม่มีก็คืน null)
-  function nearbyZoneFee(km, idx) {
-    var zone = ZONES[idx];
-    if (km - zone.minKm <= BOUNDARY_BUFFER_KM && idx > 0) return ZONES[idx - 1];
-    if (zone.maxKm - km <= BOUNDARY_BUFFER_KM && idx < ZONES.length - 1) return ZONES[idx + 1];
-    return null;
-  }
-
   // เติมที่อยู่คร่าวๆ ให้อัตโนมัติจากพิกัด GPS (reverse geocode) ผ่าน BigDataCloud
   // ฟรี ไม่ต้องมี API key แต่เป็นบริการภายนอก — เติมได้แค่ระดับตำบล/อำเภอ/จังหวัด
   // ไม่รู้บ้านเลขที่/จุดสังเกต ลูกค้าอาจต้องเติมส่วนนั้นเพิ่มเอง
@@ -505,8 +494,6 @@
         outOfRangeWarn.classList.add("hidden");
 
         var idx = zoneIndexForKm(estKm);
-        lastEstKm = estKm;
-        lastEstKmZoneIdx = idx;
         zoneSelect.value = idx;
         // ลิงก์ปักหมุด Google Maps จากพิกัดจริงตรงจุดที่ลูกค้ากดปุ่ม — แม่นกว่าที่อยู่ที่เดาจากข้อความเสมอ
         // แนบไปในสรุปที่ส่งให้ร้าน ให้ไรเดอร์กดเปิดหมุดได้ตรงจุดโดยไม่ต้องพึ่งบ้านเลขที่/คำบรรยาย
@@ -539,9 +526,6 @@
 
   var fulfillment = "deliver"; // "deliver" | "pickup"
   var gpsPinUrl = null; // ลิงก์ปักหมุด Google Maps จากพิกัด GPS จริง ตั้งค่าตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" สำเร็จ
-  // ระยะทาง+โซนที่ตรวจจากปุ่ม GPS ล่าสุด ใช้เช็คว่าใกล้รอยต่อโซนไหมตอน render() — เคลียร์เป็น null ถ้าลูกค้าเลือกโซนเองแทน
-  var lastEstKm = null;
-  var lastEstKmZoneIdx = null;
 
   function fmt(n) { return n.toLocaleString("th-TH"); }
   function baht(n) { return "฿" + fmt(Math.round(n)); }
@@ -549,14 +533,15 @@
   function currentZone() { return ZONES[zoneSelect.value]; }
   function currentZoneIndex() { return Number(zoneSelect.value); }
 
-  // ถ้าระยะที่ตรวจจากปุ่ม GPS ยังตรงกับโซนที่เลือกอยู่ (ลูกค้าไม่ได้เปลี่ยนโซนเอง) และใกล้รอยต่อโซน
-  // คืนโซนข้างเคียง + ข้อความค่าส่งแบบช่วง (คาบเกี่ยว 2 โซน) แทนตัวเลขเดียว
-  function computeFeeDisplay(zone, idx) {
-    var neighborZone = (lastEstKm !== null && idx === lastEstKmZoneIdx) ? nearbyZoneFee(lastEstKm, idx) : null;
-    var feeText = neighborZone
-      ? bahtRange(Math.min(zone.fee, neighborZone.fee), Math.max(zone.fee, neighborZone.fee))
-      : baht(zone.fee);
-    return { neighborZone: neighborZone, feeText: feeText };
+  // ข้อความค่าส่งของโซน — โซนที่มี feeMax โชว่เป็นช่วง (เช่น ฿38-50), โซนไกลสุด (feeMax เป็น null) โชว่แบบปลายเปิด
+  function zoneFeeText(zone) {
+    return zone.feeMax != null ? bahtRange(zone.feeMin, zone.feeMax) : baht(zone.feeMin) + " ขึ้นไป";
+  }
+
+  // ค่าส่งตัวเลขเดียวไว้ใช้คำนวณเปรียบเทียบราคาสั่งตรง vs แอป (ไม่ใช่ราคาที่โชว์ลูกค้า) — ใช้ค่ากลางของช่วง
+  // โซนปลายเปิด (feeMax เป็น null) ใช้ feeMin เป็นฐานคำนวณ
+  function zoneCalcFee(zone) {
+    return zone.feeMax != null ? (zone.feeMin + zone.feeMax) / 2 : zone.feeMin;
   }
 
   function makeOptCard(id, tag, title, priceHtml, priceFree, desc, selected, groupName) {
@@ -611,10 +596,7 @@
     afterZoneContent.classList.remove("hidden");
 
     var zone = currentZone();
-    var idx = currentZoneIndex();
-    var feeDisplay = computeFeeDisplay(zone, idx);
-    var neighborZone = feeDisplay.neighborZone;
-    var feeText = feeDisplay.feeText;
+    var feeText = zoneFeeText(zone);
 
     // หัวเรื่องใหญ่: ตอบคำถามที่ลูกค้ากลัวที่สุดตั้งแต่แรกเห็น — "ต้องจ่ายค่าส่งไหม เท่าไหร่"
     // ค่าส่งที่โชว์เป็นค่าประมาณเสมอ (ไม่ใช่ราคาสุดท้ายตายตัว) เผื่อระยะทางจริงคลาดเคลื่อนจากที่ระบบคำนวณ
@@ -643,16 +625,9 @@
     pickupCard.addEventListener("click", function () { fulfillment = "pickup"; render(); });
     optionsBox.appendChild(pickupCard);
 
-    var notes = [];
-    if (zone.note) notes.push(zone.note);
-    if (neighborZone) {
-      notes.push("ระยะทางประมาณ " + lastEstKm.toFixed(1) + " กม. ใกล้รอยต่อโซน " +
-        "\"" + zone.label + "\" กับ \"" + neighborZone.label + "\" — ค่าส่งอาจอยู่ในช่วง " + feeText +
-        " ยืนยันราคาแน่นอนกับร้านอีกครั้ง");
-    }
-    if (notes.length) {
+    if (zone.note) {
       farWarn.classList.remove("hidden");
-      farWarnText.textContent = notes.join(" • ");
+      farWarnText.textContent = zone.note;
     } else {
       farWarn.classList.add("hidden");
     }
@@ -672,7 +647,7 @@
     lineBtn.classList.toggle("disabled", !ready);
     requiredHint.style.display = ready ? "none" : "block";
 
-    var feeText = computeFeeDisplay(zone, currentZoneIndex()).feeText;
+    var feeText = zoneFeeText(zone);
     var choiceText = fulfillment === "pickup"
       ? "มารับเองที่ร้าน (ไม่มีค่าส่ง)"
       : "จัดส่งถึงบ้าน (ค่าส่งประมาณ " + feeText +
@@ -718,7 +693,7 @@
   // ราคาสั่งตรงจริงของเซ็ทนี้ที่โซนนี้ = ราคาเซ็ท + ค่าส่งร้าน (0 ถ้าราคาเซ็ทถึงเกณฑ์ฟรีส่งของโซนนั้นอยู่แล้ว)
   function directPriceForZone(set, zone) {
     var store = setTotals(set).store;
-    return store + (store >= zone.threshold ? 0 : zone.fee);
+    return store + (store >= zone.threshold ? 0 : zoneCalcFee(zone));
   }
 
   // ส่วนต่างที่ประหยัดจริงเทียบแอปส่งอาหาร ที่โซน/เซ็ทนี้ — คืน null ถ้าไม่มีข้อมูลราคาแอปสำหรับคู่นี้
@@ -873,12 +848,7 @@
     }
   }
 
-  zoneSelect.addEventListener("change", function () {
-    // ลูกค้าเลือกโซนเอง (ไม่ใช่ผลจากปุ่ม GPS) — เคลียร์ค่าประมาณเดิม กันโชว์ช่วงราคาผิดโซน
-    lastEstKm = null;
-    lastEstKmZoneIdx = null;
-    render();
-  });
+  zoneSelect.addEventListener("change", render);
   [nameInput, phoneInput, addressInput].forEach(function (el) {
     el.addEventListener("input", function () { updateSummary(currentZone()); });
   });
