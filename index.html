@@ -138,6 +138,8 @@
   .opt .price.free{ color:var(--green); }
   .opt.selected .price.free{ color:var(--badge); }
   .opt .desc{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; }
+  /* จุดโฟกัสเดียวในการ์ดเมนู — ตัวเลขประหยัดคือสิ่งที่อยากให้ลูกค้าเห็นก่อน ส่วนอื่นในย่อหน้ายังเป็นสีเทาเหมือนเดิม */
+  .save-highlight{ color:var(--green); font-weight:700; }
   .opt input[type=radio]{ position:absolute; opacity:0; }
   .opt.selected::after{
     content:"✓"; position:absolute; top:10px; right:12px;
@@ -734,7 +736,7 @@
         : "ยังไม่ถึงฟรีส่งโซนนี้ (ขาดอีก " + baht(zone.threshold - totals.store) + ")";
       var savings = appSavings(set, currentZoneIndex(), zone);
       var compareText = (savings != null && savings > 0)
-        ? "ประหยัดกว่าแอปส่งอาหาร " + baht(savings) + " • "
+        ? '<strong class="save-highlight">ประหยัดกว่าแอปส่งอาหาร ' + baht(savings) + '</strong> • '
         : ""; // ≤0 หรือไม่มีข้อมูล — ไม่โชว์ตัวเลขลบ/0 ตัดทิ้งทั้งประโยคไปเลย
       var desc = setItemsHtml(set) + "<br>" + compareText + statusText;
 
