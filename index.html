@@ -171,7 +171,7 @@
   /* ใช้ตอนพื้นที่ลูกค้าอยู่นอกระยะจัดส่งจริงของร้าน (เข้มกว่า warn-box ปกติที่แค่เตือนให้โทรเช็ค) */
   .warn-box.danger{ background:var(--red-soft); border-style:solid; color:var(--red); font-weight:500; }
 
-  /* เซ็ตแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
+  /* เซ็ทแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
   .menu-hint{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; margin:0 0 10px; }
 
   .headline-box.save .v{ color:#7CE0A8; }
@@ -292,8 +292,8 @@
     </div>
 
     <section>
-      <p class="step-label">ขั้นตอนที่ 2/4 · เซ็ตแนะนำ</p>
-      <p class="menu-hint">เลือก 1 เซ็ตที่ถูกใจ — คุ้มกว่าสั่งผ่านแอป และช่วยให้ถึงเกณฑ์ฟรีส่งของโซนคุณ</p>
+      <p class="step-label">ขั้นตอนที่ 2/4 · เซ็ทแนะนำ</p>
+      <p class="menu-hint">เลือก 1 เซ็ทที่ถูกใจ — คุ้มกว่าสั่งผ่านแอป และช่วยให้ถึงเกณฑ์ฟรีส่งของโซนคุณ</p>
       <div class="options" id="setList"></div>
     </section>
 
@@ -377,7 +377,7 @@
       note: "ระยะค่อนข้างไกล ทักแชทร้านทาง LINE ยืนยันก่อนสั่งได้ถ้าไม่แน่ใจ" }
   ];
 
-  // ราคาเมนู ใช้ประกอบเซ็ตแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
+  // ราคาเมนู ใช้ประกอบเซ็ทแนะนำด้านล่าง — แก้ตัวเลขตรงนี้ได้เลยถ้าราคาเปลี่ยน
   // drink: true = แสดงรวมเป็น "เครื่องดื่ม (ชนิดใดก็ได้) xN" แทนชื่อเมนูจริง กันลูกค้าสับสนว่าต้องได้แก้วนั้นเป๊ะๆ
   // riceVariant: true = แสดงรวมเป็น "ข้าวไข่ลูกเขย YOMO (ซอสชนิดใดก็ได้) xN" เหมือนกัน (ราคาเท่ากันทุกซอสอยู่แล้ว)
   var MENU_ITEMS = {
@@ -388,24 +388,24 @@
     cocoa:     { name: "โกโก้ หอมเข้ม", store: 55, drink: true }
   };
 
-  // เซ็ตแนะนำ "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — ร้านจะเอาไปตั้งเป็นเมนูจริงในระบบสั่งซื้อ
-  // ให้ตรงกับรายการนี้เป๊ะๆ (ไม่ได้ลดราคาเป็นเซ็ต แค่รวมราคาปกติให้ถึงเกณฑ์ฟรีส่งของแต่ละโซนพอดี)
-  // แก้ราคา/รายการ/เพิ่มลดเซ็ตได้อิสระ แค่แก้ array นี้ (key ต้องตรงกับ MENU_ITEMS ด้านบน)
+  // เซ็ทแนะนำ "เทียบราคา สั่งตรง vs สั่งผ่านแอป" — ร้านจะเอาไปตั้งเป็นเมนูจริงในระบบสั่งซื้อ
+  // ให้ตรงกับรายการนี้เป๊ะๆ (ไม่ได้ลดราคาเป็นเซ็ท แค่รวมราคาปกติให้ถึงเกณฑ์ฟรีส่งของแต่ละโซนพอดี)
+  // แก้ราคา/รายการ/เพิ่มลดเซ็ทได้อิสระ แค่แก้ array นี้ (key ต้องตรงกับ MENU_ITEMS ด้านบน)
   var SETS = [
-    { name: "เซ็ต A", items: [{ key: "riceYomo", qty: 1 }, { key: "coffee", qty: 1 }, { key: "cocoa", qty: 1 }] },
-    { name: "เซ็ต B", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "coffee", qty: 1 }] },
-    { name: "เซ็ต C", bestSeller: true, items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 1 }] },
-    { name: "เซ็ต D", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 2 }, { key: "cocoa", qty: 1 }] }
+    { name: "เซ็ท A", items: [{ key: "riceYomo", qty: 1 }, { key: "coffee", qty: 1 }, { key: "cocoa", qty: 1 }] },
+    { name: "เซ็ท B", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "coffee", qty: 1 }] },
+    { name: "เซ็ท C", bestSeller: true, items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 1 }] },
+    { name: "เซ็ท D", items: [{ key: "riceYomo", qty: 1 }, { key: "riceSpicy", qty: 1 }, { key: "matcha", qty: 1 }, { key: "coffee", qty: 2 }, { key: "cocoa", qty: 1 }] }
   ];
 
   // ราคารวมจริงที่ลูกค้าจ่ายเมื่อสั่งผ่านแอปส่งอาหาร (รวมค่าส่งของแอปในตัวเลขนี้แล้ว)
   // ทดสอบสั่งจริง 1 ครั้ง/จุด ที่จุดอ้างอิงใกล้ศูนย์กลางแต่ละโซน ราคาแอปเปลี่ยนได้ ทดสอบใหม่แล้วแก้ตรงนี้
   // ลำดับแถวต้องตรงกับ ZONES ด้านบน (โซน1..โซน4) — คีย์ในแต่ละแถวต้องตรงกับ SETS[].name
   var APP_PRICE_BY_ZONE = [
-    { "เซ็ต A": 226, "เซ็ต B": 250, "เซ็ต C": 315, "เซ็ต D": 445 }, // โซน 0-1 กม. (ทดสอบที่ 7-11)
-    { "เซ็ต A": 232, "เซ็ต B": 256, "เซ็ต C": 321, "เซ็ต D": 451 }, // โซน 1-3 กม. (ทดสอบที่ เซ็นทรัลปิ่นเกล้า)
-    { "เซ็ต A": 241, "เซ็ต B": 265, "เซ็ต C": 330, "เซ็ต D": 460 }, // โซน 3-5 กม. (ทดสอบที่ รพ.ยันฮี)
-    { "เซ็ต A": 366, "เซ็ต B": 390, "เซ็ต C": 458, "เซ็ต D": 585 }  // โซนเกิน 5 กม. (ทดสอบที่ จตุจักร)
+    { "เซ็ท A": 226, "เซ็ท B": 250, "เซ็ท C": 315, "เซ็ท D": 445 }, // โซน 0-1 กม. (ทดสอบที่ 7-11)
+    { "เซ็ท A": 232, "เซ็ท B": 256, "เซ็ท C": 321, "เซ็ท D": 451 }, // โซน 1-3 กม. (ทดสอบที่ เซ็นทรัลปิ่นเกล้า)
+    { "เซ็ท A": 241, "เซ็ท B": 265, "เซ็ท C": 330, "เซ็ท D": 460 }, // โซน 3-5 กม. (ทดสอบที่ รพ.ยันฮี)
+    { "เซ็ท A": 366, "เซ็ท B": 390, "เซ็ท C": 458, "เซ็ท D": 585 }  // โซนเกิน 5 กม. (ทดสอบที่ จตุจักร)
   ];
 
   var locateBtn     = document.getElementById("locateBtn");
@@ -558,7 +558,7 @@
   });
 
   var fulfillment = "deliver"; // "deliver" | "pickup"
-  var CUSTOM_SET_ID = "custom"; // ค่าพิเศษของ selectedSetIndex เมื่อลูกค้าเลือก "เลือกเมนูเอง" แทนเซ็ตแนะนำ
+  var CUSTOM_SET_ID = "custom"; // ค่าพิเศษของ selectedSetIndex เมื่อลูกค้าเลือก "เลือกเมนูเอง" แทนเซ็ทแนะนำ
   var selectedSetIndex = null; // index ของ SETS, CUSTOM_SET_ID, หรือ null ถ้ายังไม่เลือก
   var gpsPinUrl = null; // ลิงก์ปักหมุด Google Maps จากพิกัด GPS จริง ตั้งค่าตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" สำเร็จ
 
@@ -668,12 +668,14 @@
       "------------------------------",
       "ชื่อลูกค้า: " + (name || "-"),
       "เบอร์โทร: " + (phone || "-"),
-      "ที่อยู่จัดส่ง: " + (address || "-"),
-      "ระยะทางโดยประมาณ: " + zone.label,
-      "ทางเลือกที่เลือก: " + choiceText,
-      "เซ็ตที่สนใจ: " + setLine
+      "ที่อยู่จัดส่ง: " + (address || "-")
     ];
     if (gpsPinUrl) lines.push("พิกัดตำแหน่ง (GPS): " + gpsPinUrl);
+    lines.push(
+      "ระยะทางโดยประมาณ: " + zone.label,
+      "ทางเลือกที่เลือก: " + choiceText,
+      "เซ็ทที่สนใจ: " + setLine
+    );
     if (selectedSetIndex !== null && selectedSetIndex !== CUSTOM_SET_ID) {
       lines = lines.concat(setItemsLines(SETS[selectedSetIndex]));
     }
@@ -705,13 +707,13 @@
     return { store: store };
   }
 
-  // ราคาสั่งตรงจริงของเซ็ตนี้ที่โซนนี้ = ราคาเซ็ต + ค่าส่งร้าน (0 ถ้าราคาเซ็ตถึงเกณฑ์ฟรีส่งของโซนนั้นอยู่แล้ว)
+  // ราคาสั่งตรงจริงของเซ็ทนี้ที่โซนนี้ = ราคาเซ็ท + ค่าส่งร้าน (0 ถ้าราคาเซ็ทถึงเกณฑ์ฟรีส่งของโซนนั้นอยู่แล้ว)
   function directPriceForZone(set, zone) {
     var store = setTotals(set).store;
     return store + (store >= zone.threshold ? 0 : zone.fee);
   }
 
-  // ส่วนต่างที่ประหยัดจริงเทียบแอปส่งอาหาร ที่โซน/เซ็ตนี้ — คืน null ถ้าไม่มีข้อมูลราคาแอปสำหรับคู่นี้
+  // ส่วนต่างที่ประหยัดจริงเทียบแอปส่งอาหาร ที่โซน/เซ็ทนี้ — คืน null ถ้าไม่มีข้อมูลราคาแอปสำหรับคู่นี้
   function appSavings(set, zoneIndex, zone) {
     var appPrices = APP_PRICE_BY_ZONE[zoneIndex];
     var appPrice = appPrices ? appPrices[set.name] : undefined;
@@ -719,7 +721,7 @@
     return appPrice - directPriceForZone(set, zone);
   }
 
-  // รวมรายการที่ item.drink === true ทั้งหมดในเซ็ตเป็นบรรทัดเดียว "เครื่องดื่ม (ชนิดใดก็ได้ xN)"
+  // รวมรายการที่ item.drink === true ทั้งหมดในเซ็ทเป็นบรรทัดเดียว "เครื่องดื่ม (ชนิดใดก็ได้ xN)"
   // ส่วนรายการอื่น (ข้าว) แสดงชื่อจริงตามเดิม — กันลูกค้าสับสนว่าต้องได้เครื่องดื่มชนิดนั้นเป๊ะๆ
   function setDisplayEntries(set) {
     var entries = [];
@@ -749,7 +751,7 @@
     return setDisplayEntries(set).map(function (t) { return "  • " + t; });
   }
 
-  // ใช้แสดงในการ์ดเลือกเซ็ต (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
+  // ใช้แสดงในการ์ดเลือกเซ็ท (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
   function setItemsHtml(set) {
     return setDisplayEntries(set).map(function (t) { return "• " + t; }).join("<br>");
   }
@@ -767,7 +769,7 @@
   function renderSetList() {
     var zone = currentZone();
 
-    // หาเซ็ตที่ถูกที่สุดที่ถึงเกณฑ์ฟรีส่งของโซนนี้ เพื่อติด tag "แนะนำสำหรับโซนนี้"
+    // หาเซ็ทที่ถูกที่สุดที่ถึงเกณฑ์ฟรีส่งของโซนนี้ เพื่อติด tag "แนะนำสำหรับโซนนี้"
     var recommendedIndex = -1;
     SETS.forEach(function (set, i) {
       if (recommendedIndex === -1 && setTotals(set).store >= zone.threshold) recommendedIndex = i;
@@ -787,7 +789,7 @@
       var desc = setItemsHtml(set) + "<br>" + compareText + statusText;
 
       var tags = [];
-      if (set.bestSeller) tags.push("เซ็ตขายดี");
+      if (set.bestSeller) tags.push("เซ็ทขายดี");
       if (i === recommendedIndex) tags.push("แนะนำสำหรับโซนนี้");
 
       var card = makeOptCard(
@@ -802,7 +804,7 @@
       setList.appendChild(card);
     });
 
-    // ตัวเลือกสุดท้าย: ลูกค้าเลือกเมนูเองอิสระ ไม่ต้องตรงกับเซ็ตแนะนำ ขอแค่ถึงยอดขั้นต่ำฟรีส่งของโซนนี้
+    // ตัวเลือกสุดท้าย: ลูกค้าเลือกเมนูเองอิสระ ไม่ต้องตรงกับเซ็ทแนะนำ ขอแค่ถึงยอดขั้นต่ำฟรีส่งของโซนนี้
     var customCard = makeOptCard(
       "setCustom", null, "เลือกเมนูเอง",
       "ตามที่สั่ง", false,
@@ -830,7 +832,7 @@
   }
 
   function updateSetSelection() {
-    // ไม่ได้เลือกเซ็ตไหนเลย หรือเลือก "เลือกเมนูเอง" — ไม่มีรายการสินค้าจริงให้คิดยอดประหยัด/ยอดสั่งได้
+    // ไม่ได้เลือกเซ็ทไหนเลย หรือเลือก "เลือกเมนูเอง" — ไม่มีรายการสินค้าจริงให้คิดยอดประหยัด/ยอดสั่งได้
     if (selectedSetIndex === null || selectedSetIndex === CUSTOM_SET_ID) {
       totalSaveBox.classList.add("hidden");
       updateFreeShippingProgress(0);
