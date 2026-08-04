@@ -161,6 +161,8 @@
     font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;
     border:2px solid var(--ink);
   }
+  /* การ์ดเมนูแนะนำ — แสดงเฉยๆ ไม่ใช่ตัวเลือกที่กดสั่งได้ กันลูกค้าสับสนว่ากดแล้วคือสั่งซื้อ */
+  .opt.info{ cursor:default; }
 
   .warn-box{
     display:flex; gap:8px; align-items:flex-start;
@@ -171,10 +173,8 @@
   /* ใช้ตอนพื้นที่ลูกค้าอยู่นอกระยะจัดส่งจริงของร้าน (เข้มกว่า warn-box ปกติที่แค่เตือนให้โทรเช็ค) */
   .warn-box.danger{ background:var(--red-soft); border-style:solid; color:var(--red); font-weight:500; }
 
-  /* เซ็ทแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
+  /* เมนูแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
   .menu-hint{ font-size:12.5px; color:rgba(35,31,32,0.62); line-height:1.5; margin:0 0 10px; }
-
-  .headline-box.save .v{ color:#7CE0A8; }
 
   .trust-strip{
     margin:0 0 14px; padding:12px 14px;
@@ -196,16 +196,9 @@
     font-family:'Kanit',sans-serif;
   }
   .cta:active{ transform:translateY(1px); }
-  .cta.secondary{ background:var(--white); color:var(--ink); font-weight:500; font-size:15px; padding:13px 10px; }
   .cta:disabled, .cta.disabled{ opacity:.45; cursor:default; pointer-events:none; }
   /* เขียว LINE ของแบรนด์ ใช้เฉพาะปุ่มนี้เพื่อให้ลูกค้าจำสัญลักษณ์ LINE ได้ทันที ไม่ใช่สีในธีมร้าน */
   .cta.line{ background:#06C755; color:var(--white); }
-  /* หลังกดส่ง LINE แล้ว ปุ่ม "สั่งเลย" สลับจาก secondary เป็นสีหลัก + เรืองแสงเบาๆ ดึงสายตาให้กดขั้นตอนต่อไป */
-  .cta.ready{ background:var(--red); color:var(--white); font-weight:600; font-size:16px; padding:16px 10px; animation:ctaPulse 1.4s ease-out 2; }
-  @keyframes ctaPulse{
-    0%,100%{ box-shadow:0 0 0 0 rgba(191,30,46,0.45); }
-    50%{ box-shadow:0 0 0 9px rgba(191,30,46,0); }
-  }
 
   .note-preview{
     margin-top:10px; padding:11px 12px; border-radius:10px;
@@ -259,7 +252,7 @@
     <div class="shop-status" id="shopStatus"></div>
 
     <section>
-      <p class="step-label">ขั้นตอนที่ 1/4 · ที่อยู่จัดส่ง</p>
+      <p class="step-label">ขั้นตอนที่ 1/3 · ที่อยู่จัดส่ง</p>
 
       <button type="button" class="locate" id="locateBtn">📍 ใช้ตำแหน่งปัจจุบัน</button>
       <div class="geo-status" id="geoStatus"></div>
@@ -292,16 +285,11 @@
     </div>
 
     <section>
-      <p class="step-label">ขั้นตอนที่ 2/4 · เซ็ทแนะนำ</p>
-      <p class="menu-hint">เลือก 1 เซ็ทที่ถูกใจ — คุ้มกว่าสั่งผ่านแอป และช่วยให้ถึงเกณฑ์ฟรีส่งของโซนคุณ</p>
+      <p class="step-label">เมนูแนะนำ</p>
+      <p class="menu-hint">ตัวอย่างเมนูที่คุ้มกว่าสั่งผ่านแอป และช่วยให้ถึงเกณฑ์ฟรีส่งของโซนคุณ — สนใจเมนูไหนบอกรายละเอียดกับร้านได้เลยทาง LINE ด้านล่าง</p>
       <div class="options" id="setList"></div>
+      <p class="menu-hint" id="customOrderHint"></p>
     </section>
-
-    <div class="headline-box save hidden" id="totalSaveBox">
-      <p class="k">สั่งตรงกับร้านวันนี้</p>
-      <p class="v" id="totalSaveV">ประหยัดรวม ฿0</p>
-      <p class="sub2">เทียบกับราคาสั่งผ่านแอปเดลิเวอรี</p>
-    </div>
 
     <div class="freeship-box" id="freeshipBox">
       <div class="freeship-track"><div class="freeship-fill" id="freeshipFill"></div></div>
@@ -309,7 +297,7 @@
     </div>
 
     <section>
-      <p class="step-label">ขั้นตอนที่ 3/4 · ข้อมูลติดต่อ (ใช้ตอนส่งข้อมูลให้ร้าน)</p>
+      <p class="step-label">ขั้นตอนที่ 2/3 · ข้อมูลติดต่อ (ใช้ตอนส่งข้อมูลให้ร้าน)</p>
 
       <label class="field-label" for="nameInput">ชื่อลูกค้า</label>
       <input type="text" id="nameInput" placeholder="ชื่อ-นามสกุล / ชื่อเล่น">
@@ -325,15 +313,14 @@
     </div>
 
     <section>
-      <p class="step-label">ขั้นตอนที่ 4/4 · ตรวจสอบรายละเอียดก่อนส่ง</p>
+      <p class="step-label">ขั้นตอนที่ 3/3 · ตรวจสอบรายละเอียดก่อนส่ง</p>
       <div class="note-preview" id="notePreview"></div>
       <p class="required-hint" id="requiredHint">กรอกชื่อและเบอร์โทรให้ครบก่อนส่งข้อมูลให้ร้าน</p>
     </section>
 
     <div class="cta-row">
-      <a class="cta line" id="lineBtn" href="#" target="_blank" rel="noopener">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE</a>
-      <p class="next-step-hint" id="nextStepHint">ส่งข้อมูลให้ร้านก่อน แล้วกดปุ่มด้านล่างเพื่อไปสั่งเมนูต่อ</p>
-      <a class="cta secondary" id="posBtn" href="#" target="_blank" rel="noopener">🛒 สั่งเลย</a>
+      <a class="cta line" id="lineBtn" href="#" target="_blank" rel="noopener">💬 ส่งข้อมูลจัดส่งให้ร้านทาง LINE เพื่อสั่งเมนู</a>
+      <p class="next-step-hint" id="nextStepHint">กรอกชื่อและเบอร์โทรให้ครบ แล้วกดส่งเพื่อคุยกับร้านทาง LINE ต่อได้เลย</p>
     </div>
 
     <p class="footnote">ระยะทางจากปุ่ม "ใช้ตำแหน่งปัจจุบัน" เป็นค่าประมาณ ระยะถนนจริงอาจต่างจากนี้เล็กน้อย</p>
@@ -349,7 +336,6 @@
   "use strict";
 
   var SHOP_NAME = "YOMO ข้าวไข่ลูกเขย";
-  var POS_URL = "https://mobile-order.wongnai.com/r/5889c073-df92-4506-aa40-dd52122ebb95";
   // LINE OA ของร้าน — เปลี่ยนได้ถ้าร้านเปลี่ยนบัญชี ใช้เปิดแชทพร้อมข้อความสรุปจัดส่งให้อัตโนมัติ
   var LINE_OA_ID = "@002simug";
 
@@ -426,11 +412,9 @@
   var lineBtn       = document.getElementById("lineBtn");
   var requiredHint  = document.getElementById("requiredHint");
   var notePreview   = document.getElementById("notePreview");
-  var posBtn        = document.getElementById("posBtn");
   var nextStepHint  = document.getElementById("nextStepHint");
   var setList       = document.getElementById("setList");
-  var totalSaveBox  = document.getElementById("totalSaveBox");
-  var totalSaveV    = document.getElementById("totalSaveV");
+  var customOrderHint = document.getElementById("customOrderHint");
   var freeshipBox   = document.getElementById("freeshipBox");
   var freeshipFill  = document.getElementById("freeshipFill");
   var freeshipText  = document.getElementById("freeshipText");
@@ -439,8 +423,6 @@
   var shopStatus    = document.getElementById("shopStatus");
   var afterZoneContent = document.getElementById("afterZoneContent");
   var chooseZoneHint   = document.getElementById("chooseZoneHint");
-
-  posBtn.href = POS_URL;
 
   // placeholder เริ่มต้นไม่ผูกกับโซนไหนเลย บังคับให้ลูกค้าต้องเลือกจริง (เปลี่ยนค่า) ก่อนถึงจะเห็นราคา/ขั้นตอนถัดไป
   // ลดข้อมูลที่โชว์ทีเดียวตอนเข้าเว็บครั้งแรก กันความสับสน
@@ -558,8 +540,6 @@
   });
 
   var fulfillment = "deliver"; // "deliver" | "pickup"
-  var CUSTOM_SET_ID = "custom"; // ค่าพิเศษของ selectedSetIndex เมื่อลูกค้าเลือก "เลือกเมนูเอง" แทนเซ็ทแนะนำ
-  var selectedSetIndex = null; // index ของ SETS, CUSTOM_SET_ID, หรือ null ถ้ายังไม่เลือก
   var gpsPinUrl = null; // ลิงก์ปักหมุด Google Maps จากพิกัด GPS จริง ตั้งค่าตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" สำเร็จ
 
   function fmt(n) { return n.toLocaleString("th-TH"); }
@@ -589,6 +569,24 @@
     lbl.innerHTML += html;
 
     return lbl;
+  }
+
+  // การ์ดแสดงเมนูแนะนำแบบดูเฉยๆ (ไม่ใช่ตัวเลือกที่กดสั่งได้ เหมือนการ์ดจัดส่ง/รับเอง) — ลูกค้าเคยสับสนว่ากดแล้วคือสั่งซื้อ
+  function makeInfoCard(tag, title, priceHtml, priceFree, desc) {
+    var div = document.createElement("div");
+    div.className = "opt info";
+
+    var html = "";
+    if (tag) {
+      var tags = Array.isArray(tag) ? tag : [tag];
+      html += tags.map(function (t) { return '<span class="tag">' + t + "</span>"; }).join(" ");
+    }
+    html += '<div class="top-row"><span class="title">' + title + '</span><span class="price' +
+      (priceFree ? " free" : "") + '">' + priceHtml + "</span></div>";
+    html += '<p class="desc">' + desc + "</p>";
+    div.innerHTML = html;
+
+    return div;
   }
 
   function render() {
@@ -637,7 +635,7 @@
 
     updateSummary(zone);
     renderSetList();
-    updateSetSelection();
+    updateFreeShippingProgress(0); // เตือนยอดขั้นต่ำฟรีส่งของโซนนี้เฉยๆ ไม่มีเมนูที่ "เลือก" ให้คิดยอดจริงแล้ว
   }
 
   function updateSummary(zone) {
@@ -656,13 +654,6 @@
       : "จัดส่งถึงบ้าน (ค่าส่ง " + baht(zone.fee) + (zone.estimate ? " เริ่มต้น" : "") +
         ", ฟรีถ้าสั่งครบ " + baht(zone.threshold) + ")";
 
-    var setLine = "-";
-    if (selectedSetIndex === CUSTOM_SET_ID) {
-      setLine = "เลือกเมนูเอง (สั่งให้ครบ " + baht(zone.threshold) + " ถึงส่งฟรี)";
-    } else if (selectedSetIndex !== null) {
-      setLine = SETS[selectedSetIndex].name;
-    }
-
     var lines = [
       "📦 เช็คค่าส่ง - " + SHOP_NAME,
       "------------------------------",
@@ -673,12 +664,8 @@
     if (gpsPinUrl) lines.push("พิกัดตำแหน่ง (GPS): " + gpsPinUrl);
     lines.push(
       "ระยะทางโดยประมาณ: " + zone.label,
-      "ทางเลือกที่เลือก: " + choiceText,
-      "เซ็ทที่สนใจ: " + setLine
+      "ทางเลือกที่เลือก: " + choiceText
     );
-    if (selectedSetIndex !== null && selectedSetIndex !== CUSTOM_SET_ID) {
-      lines = lines.concat(setItemsLines(SETS[selectedSetIndex]));
-    }
     if (zone.note) lines.push("หมายเหตุ: " + zone.note);
     lines.push("------------------------------");
 
@@ -691,11 +678,8 @@
     lineBtn.href = "https://line.me/R/oaMessage/" + LINE_OA_ID + "/?" + encodeURIComponent(text);
   }
 
-  function highlightNextStep() {
-    // เน้นปุ่ม "สั่งเลย" ให้เป็นขั้นตอนถัดไปที่ชัดเจน หลังลูกค้าส่งข้อมูลให้ร้านแล้ว
-    posBtn.classList.remove("secondary");
-    posBtn.classList.add("ready");
-    nextStepHint.textContent = "✅ ส่งข้อมูลแล้ว! กดปุ่มด้านล่างเพื่อไปสั่งเมนูต่อได้เลย";
+  function confirmSent() {
+    nextStepHint.textContent = "✅ ส่งข้อมูลแล้ว! รอแอดมินร้านทักกลับทาง LINE เพื่อสั่งเมนู/ยืนยันออเดอร์ต่อได้เลย";
     nextStepHint.classList.add("done");
   }
 
@@ -746,24 +730,9 @@
     return entries;
   }
 
-  // ใช้ในสรุป/ข้อความที่ส่งให้ร้าน (plain text) — แต่ละรายการขึ้นบรรทัดใหม่ให้อ่านง่าย
-  function setItemsLines(set) {
-    return setDisplayEntries(set).map(function (t) { return "  • " + t; });
-  }
-
-  // ใช้แสดงในการ์ดเลือกเซ็ท (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
+  // ใช้แสดงในการ์ดเมนูแนะนำ (HTML) — แยกทีละบรรทัดกันสับสนกับเครื่องหมาย +
   function setItemsHtml(set) {
     return setDisplayEntries(set).map(function (t) { return "• " + t; }).join("<br>");
-  }
-
-  function selectSet(i) {
-    // การ์ดเป็น label ครอบ radio input ไว้ — คลิก 1 ครั้งเบราว์เซอร์ยิง click event 2 ครั้ง
-    // (ครั้งจากคลิกจริง + ครั้งจาก synthetic click ของ input ที่ bubble กลับขึ้นมา)
-    // ต้อง assign ค่าตรงๆ แบบเดียวกับการ์ดจัดส่ง/รับเอง ห้าม toggle เพราะยิง 2 ครั้งจะหักล้างกันเอง
-    selectedSetIndex = i;
-    renderSetList();
-    updateSummary(currentZone());
-    updateSetSelection();
   }
 
   function renderSetList() {
@@ -792,28 +761,12 @@
       if (set.bestSeller) tags.push("เซ็ทขายดี");
       if (i === recommendedIndex) tags.push("แนะนำสำหรับโซนนี้");
 
-      var card = makeOptCard(
-        "set" + i,
-        tags.length ? tags : null,
-        set.name,
-        baht(totals.store), false, desc,
-        selectedSetIndex === i,
-        "setChoice"
-      );
-      card.addEventListener("click", function () { selectSet(i); });
+      var card = makeInfoCard(tags.length ? tags : null, set.name, baht(totals.store), false, desc);
       setList.appendChild(card);
     });
 
-    // ตัวเลือกสุดท้าย: ลูกค้าเลือกเมนูเองอิสระ ไม่ต้องตรงกับเซ็ทแนะนำ ขอแค่ถึงยอดขั้นต่ำฟรีส่งของโซนนี้
-    var customCard = makeOptCard(
-      "setCustom", null, "เลือกเมนูเอง",
-      "ตามที่สั่ง", false,
-      "สั่งเมนูอะไรก็ได้ตามใจ แค่ยอดรวมถึง " + baht(zone.threshold) + " บาทขึ้นไป ก็ได้ส่งฟรีในโซนนี้เหมือนกัน",
-      selectedSetIndex === CUSTOM_SET_ID,
-      "setChoice"
-    );
-    customCard.addEventListener("click", function () { selectSet(CUSTOM_SET_ID); });
-    setList.appendChild(customCard);
+    customOrderHint.textContent = "ไม่อยากสั่งตามเมนูแนะนำ? สั่งเมนูอะไรก็ได้ตามใจ แค่ยอดรวมถึง " +
+      baht(zone.threshold) + " บาทขึ้นไป ก็ได้ส่งฟรีในโซนนี้เหมือนกัน บอกรายละเอียดกับร้านได้เลยทาง LINE";
   }
 
   function updateFreeShippingProgress(currentOrder) {
@@ -829,28 +782,6 @@
       var remaining = zone.threshold - currentOrder;
       freeshipText.textContent = "อีก " + fmt(remaining) + " บาทถึงส่งฟรี 🎉";
     }
-  }
-
-  function updateSetSelection() {
-    // ไม่ได้เลือกเซ็ทไหนเลย หรือเลือก "เลือกเมนูเอง" — ไม่มีรายการสินค้าจริงให้คิดยอดประหยัด/ยอดสั่งได้
-    if (selectedSetIndex === null || selectedSetIndex === CUSTOM_SET_ID) {
-      totalSaveBox.classList.add("hidden");
-      updateFreeShippingProgress(0);
-      return;
-    }
-
-    var zone = currentZone();
-    var set = SETS[selectedSetIndex];
-    var savings = appSavings(set, currentZoneIndex(), zone);
-
-    if (savings == null || savings <= 0) {
-      totalSaveBox.classList.add("hidden"); // ไม่มีข้อมูล หรือสั่งตรงไม่ได้ถูกกว่าแอปที่โซนนี้ — ไม่โชว์กล่องนี้เลย
-    } else {
-      totalSaveV.textContent = "ประหยัดรวม " + baht(savings);
-      totalSaveBox.classList.remove("hidden");
-    }
-
-    updateFreeShippingProgress(setTotals(set).store);
   }
 
   // จำชื่อ-เบอร์โทรลูกค้าไว้ในเบราว์เซอร์ (localStorage) ลูกค้าประจำกลับมาใช้ครั้งหน้าไม่ต้องพิมพ์ซ้ำ
@@ -941,7 +872,7 @@
     el.addEventListener("input", saveContact);
   });
 
-  lineBtn.addEventListener("click", highlightNextStep);
+  lineBtn.addEventListener("click", confirmSent);
   shareBtn.addEventListener("click", shareApp);
 
   loadSavedContact();
