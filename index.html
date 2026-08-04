@@ -337,11 +337,12 @@
 
   // แก้ตัวเลขตรงนี้ได้เลยถ้าเกณฑ์ฟรีส่ง/ค่าส่งเปลี่ยน — ดู README.md ประกอบ
   // minKm/maxKm ใช้ตอนกดปุ่ม "ใช้ตำแหน่งปัจจุบัน" เพื่อเลือกช่วงที่ตรงกับระยะจริงให้อัตโนมัติ
+  // ค่าส่ง (fee) อ้างอิงจากราคาคอลัมน์ "ปกติ" ที่เจ้าของร้านเทียบราคาแอปส่งอาหารจริง ณ จุดขอบเขตโซน (1/3/5/10 กม.) เมื่อ 2026-08-04
   var ZONES = [
-    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 150, fee: 38, minKm: 0, maxKm: 1 },
-    { label: "1-3 กม.",              threshold: 190, fee: 50, minKm: 1, maxKm: 3 },
-    { label: "3-5 กม.",              threshold: 250, fee: 65, minKm: 3, maxKm: 5 },
-    { label: "5-10 กม.",             threshold: 340, fee: 90, minKm: 5, maxKm: 10,
+    { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 150, fee: 64, minKm: 0, maxKm: 1 },
+    { label: "1-3 กม.",              threshold: 190, fee: 62, minKm: 1, maxKm: 3 },
+    { label: "3-5 กม.",              threshold: 250, fee: 89, minKm: 3, maxKm: 5 },
+    { label: "5-10 กม.",             threshold: 340, fee: 86, minKm: 5, maxKm: 10,
       note: "ระยะค่อนข้างไกล ทักแชทร้านทาง LINE ยืนยันก่อนสั่งได้ถ้าไม่แน่ใจ" }
   ];
 
