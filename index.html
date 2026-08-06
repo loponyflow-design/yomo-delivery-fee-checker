@@ -306,7 +306,15 @@
   // พิกัดร้าน ใช้คำนวณระยะทางเมื่อลูกค้ากดปุ่ม "ใช้ตำแหน่งปัจจุบัน"
   var SHOP_LAT = 13.778685908650033;
   var SHOP_LNG = 100.4892634246037;
-  // ตัวคูณประมาณระยะทางถนนจริงจากระยะเส้นตรง (นกบิน) — ปรับได้ถ้ารู้สึกว่าระบบเลือกช่วงผิดบ่อย
+
+  // API key ฟรีจาก OpenRouteService (openrouteservice.org) ใช้คำนวณระยะทางถนนจริง — คีย์นี้เป็น free tier
+  // ไม่ผูกบัตรเครดิต เห็นได้ในโค้ดสาธารณะโดยตั้งใจ (เว็บนี้เป็น static site ไม่มี backend ให้ซ่อนคีย์)
+  // ถ้าโดนใช้เกินโควตา (2,500 request/วัน) ระบบจะ fallback ไปใช้สูตรประมาณ (ROAD_FACTOR) แทนอัตโนมัติ
+  // ถ้าคีย์มีปัญหา สร้างคีย์ใหม่ได้ที่ https://openrouteservice.org/dev/#/home แล้วแทนที่ตรงนี้
+  var ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjYzNDUyMTAwNWU2NzQ4MWVhZWNlMDYzYTEyN2FiNzAzIiwiaCI6Im11cm11cjY0In0=";
+
+  // ตัวคูณประมาณระยะทางถนนจริงจากระยะเส้นตรง (นกบิน) — ใช้เป็น fallback เท่านั้นตอนนี้
+  // (ปกติจะเรียก ORS เพื่อได้ระยะถนนจริงก่อน ตัวนี้ทำงานเฉพาะตอนเรียก ORS ไม่สำเร็จ)
   var ROAD_FACTOR = 1.3;
   // ระยะทางไกลสุดที่ร้านจัดส่งจริง (กม.) — ถ้ากดปุ่ม GPS แล้วไกลเกินนี้ จะขึ้นเตือนว่านอกระยะจัดส่ง แทนที่จะคำนวณค่าส่งให้เหมือนปกติ
   var MAX_DELIVERY_KM = 10;
@@ -419,6 +427,23 @@
     return ZONES.length - 1;
   }
 
+  // ระยะทางถนนจริง (ไม่ใช่เส้นตรง) จากร้านถึงพิกัดลูกค้า ผ่าน OpenRouteService Directions API
+  // คืน Promise<กม.> — reject ถ้าเรียกไม่สำเร็จ (โควตาหมด/เน็ตหลุด/ฯลฯ) ให้โค้ดที่เรียกใช้ fallback เอง
+  function fetchRoadKm(lat, lng) {
+    var url = "https://api.openrouteservice.org/v2/directions/driving-car" +
+      "?api_key=" + ORS_API_KEY +
+      "&start=" + SHOP_LNG + "," + SHOP_LAT +
+      "&end=" + lng + "," + lat;
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error("ORS request failed: " + res.status);
+      return res.json();
+    }).then(function (data) {
+      var meters = data.features[0].properties.summary.distance;
+      if (typeof meters !== "number") throw new Error("ORS response missing distance");
+      return meters / 1000;
+    });
+  }
+
   // เติมที่อยู่คร่าวๆ ให้อัตโนมัติจากพิกัด GPS (reverse geocode) ผ่าน BigDataCloud
   // ฟรี ไม่ต้องมี API key แต่เป็นบริการภายนอก — เติมได้แค่ระดับตำบล/อำเภอ/จังหวัด
   // ไม่รู้บ้านเลขที่/จุดสังเกต ลูกค้าอาจต้องเติมส่วนนั้นเพิ่มเอง
@@ -444,6 +469,48 @@
     return unique.join(" ");
   }
 
+  // จัดการผลระยะทาง (ไม่ว่าจะมาจาก ORS จริงหรือ fallback สูตรประมาณ) — เลือกโซน/ปักหมุด/render/เติมที่อยู่
+  function handleDistanceResult(estKm, lat, lng) {
+    if (estKm > MAX_DELIVERY_KM) {
+      // ไกลเกินระยะจัดส่งจริงของร้าน — เตือนชัดๆ แทนคำนวณค่าส่งให้เหมือนส่งได้ปกติ
+      // ไม่แตะ zoneSelect/gpsPinUrl/render() เลย กันไม่ให้หน้าเว็บโชว์ราคาที่เข้าใจผิดว่าส่งได้
+      locateBtn.disabled = false;
+      geoStatus.textContent = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม.";
+      // ฟอร์มชื่อ+เบอร์และปุ่มส่ง LINE ยังไม่โผล่ในสถานะนี้ (ต้องเลือกโซนในระยะก่อน render() ถึงจะแสดง)
+      // แนบลิงก์ทักแชท LINE ตรงๆ ในนี้เลย ไม่ต้องพึ่งฟอร์ม/ปุ่มที่ยังซ่อนอยู่
+      // ใช้ LINE_OA_ID ดิบๆ ไม่ encode (แบบเดียวกับ lineBtn.href ด้านล่าง) ให้ตรงกับฟอร์แมตที่ LINE ใช้จริง
+      outOfRangeWarnText.innerHTML = "พื้นที่นี้อยู่นอกระยะจัดส่งของร้าน (ไม่เกิน " + MAX_DELIVERY_KM +
+        " กม.) แต่ทักแชทร้านทาง LINE เพื่อสอบถามเพิ่มเติมได้เลย: " +
+        '<a href="https://line.me/R/ti/p/' + LINE_OA_ID + '" target="_blank" rel="noopener">เปิดแชท LINE</a>';
+      outOfRangeWarn.classList.remove("hidden");
+      return;
+    }
+    outOfRangeWarn.classList.add("hidden");
+
+    var idx = zoneIndexForKm(estKm);
+    zoneSelect.value = idx;
+    // ลิงก์ปักหมุด Google Maps จากพิกัดจริงตรงจุดที่ลูกค้ากดปุ่ม — แม่นกว่าที่อยู่ที่เดาจากข้อความเสมอ
+    // แนบไปในสรุปที่ส่งให้ร้าน ให้ไรเดอร์กดเปิดหมุดได้ตรงจุดโดยไม่ต้องพึ่งบ้านเลขที่/คำบรรยาย
+    gpsPinUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
+    var distMsg = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม. — เลือกช่วง \"" + ZONES[idx].label + "\" ให้อัตโนมัติ";
+    geoStatus.textContent = distMsg + " (กำลังค้นหาที่อยู่...)";
+    locateBtn.disabled = false;
+    render();
+
+    reverseGeocode(lat, lng).then(function (data) {
+      var guess = addressFromGeocode(data);
+      if (guess && !addressInput.value.trim()) {
+        addressInput.value = guess;
+        geoStatus.textContent = distMsg + " • เติมที่อยู่คร่าวๆ + ปักหมุดตำแหน่งจริงให้แล้ว เพิ่มบ้านเลขที่/จุดสังเกตได้ถ้าต้องการ";
+        updateSummary(currentZone());
+      } else {
+        geoStatus.textContent = distMsg + " • ปักหมุดตำแหน่งจริงให้แล้ว";
+      }
+    }).catch(function () {
+      geoStatus.textContent = distMsg + " • ปักหมุดตำแหน่งจริงให้แล้ว";
+    });
+  }
+
   locateBtn.addEventListener("click", function () {
     if (!navigator.geolocation) {
       geoStatus.textContent = "อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง กรุณาเลือกระยะทางเองด้านล่าง";
@@ -455,46 +522,15 @@
       function (pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
-        var straightKm = haversineKm(SHOP_LAT, SHOP_LNG, lat, lng);
-        var estKm = straightKm * ROAD_FACTOR;
+        var fallbackKm = haversineKm(SHOP_LAT, SHOP_LNG, lat, lng) * ROAD_FACTOR;
 
-        if (estKm > MAX_DELIVERY_KM) {
-          // ไกลเกินระยะจัดส่งจริงของร้าน — เตือนชัดๆ แทนคำนวณค่าส่งให้เหมือนส่งได้ปกติ
-          // ไม่แตะ zoneSelect/gpsPinUrl/render() เลย กันไม่ให้หน้าเว็บโชว์ราคาที่เข้าใจผิดว่าส่งได้
-          locateBtn.disabled = false;
-          geoStatus.textContent = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม.";
-          // ฟอร์มชื่อ+เบอร์และปุ่มส่ง LINE ยังไม่โผล่ในสถานะนี้ (ต้องเลือกโซนในระยะก่อน render() ถึงจะแสดง)
-          // แนบลิงก์ทักแชท LINE ตรงๆ ในนี้เลย ไม่ต้องพึ่งฟอร์ม/ปุ่มที่ยังซ่อนอยู่
-          // ใช้ LINE_OA_ID ดิบๆ ไม่ encode (แบบเดียวกับ lineBtn.href ด้านล่าง) ให้ตรงกับฟอร์แมตที่ LINE ใช้จริง
-          outOfRangeWarnText.innerHTML = "พื้นที่นี้อยู่นอกระยะจัดส่งของร้าน (ไม่เกิน " + MAX_DELIVERY_KM +
-            " กม.) แต่ทักแชทร้านทาง LINE เพื่อสอบถามเพิ่มเติมได้เลย: " +
-            '<a href="https://line.me/R/ti/p/' + LINE_OA_ID + '" target="_blank" rel="noopener">เปิดแชท LINE</a>';
-          outOfRangeWarn.classList.remove("hidden");
-          return;
-        }
-        outOfRangeWarn.classList.add("hidden");
-
-        var idx = zoneIndexForKm(estKm);
-        zoneSelect.value = idx;
-        // ลิงก์ปักหมุด Google Maps จากพิกัดจริงตรงจุดที่ลูกค้ากดปุ่ม — แม่นกว่าที่อยู่ที่เดาจากข้อความเสมอ
-        // แนบไปในสรุปที่ส่งให้ร้าน ให้ไรเดอร์กดเปิดหมุดได้ตรงจุดโดยไม่ต้องพึ่งบ้านเลขที่/คำบรรยาย
-        gpsPinUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
-        var distMsg = "ห่างจากร้านประมาณ " + estKm.toFixed(1) + " กม. — เลือกช่วง \"" + ZONES[idx].label + "\" ให้อัตโนมัติ";
-        geoStatus.textContent = distMsg + " (กำลังค้นหาที่อยู่...)";
-        locateBtn.disabled = false;
-        render();
-
-        reverseGeocode(lat, lng).then(function (data) {
-          var guess = addressFromGeocode(data);
-          if (guess && !addressInput.value.trim()) {
-            addressInput.value = guess;
-            geoStatus.textContent = distMsg + " • เติมที่อยู่คร่าวๆ + ปักหมุดตำแหน่งจริงให้แล้ว เพิ่มบ้านเลขที่/จุดสังเกตได้ถ้าต้องการ";
-            updateSummary(currentZone());
-          } else {
-            geoStatus.textContent = distMsg + " • ปักหมุดตำแหน่งจริงให้แล้ว";
-          }
+        geoStatus.textContent = "กำลังคำนวณระยะทางถนนจริง...";
+        // ลองเรียก ORS เพื่อระยะถนนจริงก่อนเสมอ ถ้าเรียกไม่สำเร็จ (โควตาหมด/เน็ตหลุด/ฯลฯ) fallback ไปใช้สูตรประมาณแทน
+        // กันไม่ให้ฟีเจอร์เช็คระยะทางพังไปทั้งหมดถ้า ORS มีปัญหา
+        fetchRoadKm(lat, lng).then(function (roadKm) {
+          handleDistanceResult(roadKm, lat, lng);
         }).catch(function () {
-          geoStatus.textContent = distMsg + " • ปักหมุดตำแหน่งจริงให้แล้ว";
+          handleDistanceResult(fallbackKm, lat, lng);
         });
       },
       function () {
