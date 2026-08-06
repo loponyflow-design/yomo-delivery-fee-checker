@@ -651,12 +651,20 @@
     var feeText = zoneFeeText(zone);
 
     // หัวเรื่องใหญ่: ตอบคำถามที่ลูกค้ากลัวที่สุดตั้งแต่แรกเห็น — "ต้องจ่ายค่าส่งไหม เท่าไหร่"
-    // ค่าส่งที่โชว์เป็นค่าประมาณเสมอ (ไม่ใช่ราคาสุดท้ายตายตัว) เผื่อระยะทางจริงคลาดเคลื่อนจากที่ระบบคำนวณ
-    headlineBox.classList.toggle("free", false);
-    headlineK.textContent = "ค่าส่งของช่วง " + zone.label;
-    // innerHTML แทน textContent เพื่อห่อตัวราคาด้วย span ไว้ขีดฆ่าแบบอนิเมชั่น — feeText มาจาก baht()/bahtRange() เท่านั้น ไม่มี input ผู้ใช้ปนจึงปลอดภัย
-    headlineV.innerHTML = "ประมาณ <span class=\"fee-strike-wrap\">" + feeText + "<span class=\"fee-strike-line\"></span></span>";
-    headlineSub.textContent = "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาท";
+    // ต้องแยกตามทางเลือกที่กำลังเลือกอยู่ (fulfillment) — ถ้าเลือก "มารับเองที่ร้าน" ไม่มีค่าส่งอยู่แล้ว
+    // จึงไม่ควรค้างโชว์ตัวเลขค่าส่ง/ยอดขั้นต่ำฟรีส่งของโซนไว้ให้สับสน (เดิมโชว่ค้างไว้เสมอไม่ว่าจะเลือกอะไร)
+    if (fulfillment === "pickup") {
+      headlineBox.classList.toggle("free", true);
+      headlineK.textContent = "มารับเองที่ร้าน";
+      headlineV.textContent = "ฟรี";
+      headlineSub.textContent = "ไม่มีค่าส่ง ไม่ต้องรอไรเดอร์";
+    } else {
+      headlineBox.classList.toggle("free", false);
+      headlineK.textContent = "ค่าส่งของช่วง " + zone.label;
+      // innerHTML แทน textContent เพื่อห่อตัวราคาด้วย span ไว้ขีดฆ่าแบบอนิเมชั่น — feeText มาจาก baht()/bahtRange() เท่านั้น ไม่มี input ผู้ใช้ปนจึงปลอดภัย
+      headlineV.innerHTML = "ประมาณ <span class=\"fee-strike-wrap\">" + feeText + "<span class=\"fee-strike-line\"></span></span>";
+      headlineSub.textContent = "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาท";
+    }
 
     optionsBox.innerHTML = "";
 
