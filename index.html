@@ -111,23 +111,23 @@
     font-family:'Kanit',sans-serif; font-weight:700; font-size:32px; color:var(--badge); margin:0;
   }
   .headline-box.free .v{ color:#7CE0A8; }
-  /* ราคา+เส้นขีดฆ่า+ข้อความฟรีส่ง วนอนิเมชั่นพร้อมกันเป็นลูป (หด+จาง / ขีดฆ่าโผล่ / ฟรีส่งขยายใหญ่) ล้อกันไปมา
-     สื่อว่าราคานี้ยกเลิกได้ถ้าสั่งถึงเกณฑ์ฟรีส่งด้านล่าง — ทั้ง 3 ตัวใช้ duration/easing/direction เดียวกันให้อยู่จังหวะเดียวกัน */
+  /* ราคา+เส้นขีดฆ่า+ข้อความฟรีส่ง เล่นอนิเมชั่นพร้อมกันครั้งเดียว (หด+จาง / ขีดฆ่าโผล่ / ฟรีส่งขยายใหญ่) แล้วค้างอยู่ที่สถานะสุดท้าย
+     สื่อว่าราคานี้ยกเลิกได้ถ้าสั่งถึงเกณฑ์ฟรีส่งด้านล่าง — ทั้ง 3 ตัวใช้ duration/easing เดียวกันให้อยู่จังหวะเดียวกัน */
   .headline-box .v .fee-strike-wrap{
     position:relative; display:inline-block; transform-origin:center;
-    animation:feeShrinkFade 1.8s ease-in-out .4s infinite alternate;
+    animation:feeShrinkFade 1.8s ease-in-out .4s forwards;
   }
   .headline-box .v .fee-strike-line{
     position:absolute; left:0; top:50%; height:3px; width:0;
     background:#7CE0A8; transform:translateY(-50%); border-radius:2px;
-    animation:feeStrike 1.8s ease-in-out .4s infinite alternate;
+    animation:feeStrike 1.8s ease-in-out .4s forwards;
   }
   @keyframes feeShrinkFade{ from{ transform:scale(1); opacity:1; } to{ transform:scale(.88); opacity:.55; } }
   @keyframes feeStrike{ from{ width:0; } to{ width:100%; } }
   .headline-box .sub2{
     font-family:'Kanit',sans-serif; font-weight:600; font-size:14px;
     color:#7CE0A8; margin:8px 0 0; transform-origin:center;
-    animation:freeGrow 1.8s ease-in-out .4s infinite alternate;
+    animation:freeGrow 1.8s ease-in-out .4s forwards;
   }
   @keyframes freeGrow{ from{ transform:scale(1); } to{ transform:scale(1.15); } }
 
