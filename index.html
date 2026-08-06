@@ -111,6 +111,14 @@
     font-family:'Kanit',sans-serif; font-weight:700; font-size:32px; color:var(--badge); margin:0;
   }
   .headline-box.free .v{ color:#7CE0A8; }
+  /* เส้นขีดฆ่าที่ลากผ่านราคาค่าส่งแบบอนิเมชั่น ล้อกับข้อความ "ฟรีทันทีถ้าสั่งครบ..." ด้านล่าง — สื่อว่าราคานี้ยกเลิกได้ถ้าสั่งถึงเกณฑ์ */
+  .headline-box .v .fee-strike-wrap{ position:relative; display:inline-block; }
+  .headline-box .v .fee-strike-line{
+    position:absolute; left:0; top:50%; height:3px; width:0;
+    background:#7CE0A8; transform:translateY(-50%); border-radius:2px;
+    animation:feeStrike .5s ease-out .5s forwards;
+  }
+  @keyframes feeStrike{ from{ width:0; } to{ width:100%; } }
   .headline-box .sub2{
     font-family:'Sarabun',sans-serif; font-weight:400; font-size:12.5px;
     color:rgba(255,255,255,0.7); margin:8px 0 0;
@@ -619,7 +627,8 @@
     // ค่าส่งที่โชว์เป็นค่าประมาณเสมอ (ไม่ใช่ราคาสุดท้ายตายตัว) เผื่อระยะทางจริงคลาดเคลื่อนจากที่ระบบคำนวณ
     headlineBox.classList.toggle("free", false);
     headlineK.textContent = "ค่าส่งของช่วง " + zone.label;
-    headlineV.textContent = "ประมาณ " + feeText;
+    // innerHTML แทน textContent เพื่อห่อตัวราคาด้วย span ไว้ขีดฆ่าแบบอนิเมชั่น — feeText มาจาก baht()/bahtRange() เท่านั้น ไม่มี input ผู้ใช้ปนจึงปลอดภัย
+    headlineV.innerHTML = "ประมาณ <span class=\"fee-strike-wrap\">" + feeText + "<span class=\"fee-strike-line\"></span></span>";
     headlineSub.textContent = "ฟรีทันทีถ้าสั่งครบ " + baht(zone.threshold) + " บาท";
 
     optionsBox.innerHTML = "";
