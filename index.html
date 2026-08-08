@@ -190,18 +190,23 @@
   /* เขียว LINE ของแบรนด์ ใช้เฉพาะปุ่มนี้เพื่อให้ลูกค้าจำสัญลักษณ์ LINE ได้ทันที ไม่ใช่สีในธีมร้าน */
   .cta.line{ background:#06C755; color:var(--white); }
 
-  /* ปุ่มเพิ่มเพื่อน LINE แบบเบา — ทางเลือกสำหรับคนที่ยังไม่อยากกรอก/ส่งรายละเอียดผ่านฟอร์ม แค่อยากเพิ่มเพื่อนไว้ก่อน
-     ใช้ outline แทนพื้นเขียวทึบ กันสับสนกับปุ่ม "ส่งข้อมูลจัดส่ง" หลัก (ปุ่มนี้ไม่ผูกกับข้อมูลฟอร์มเลย) */
-  .cta.line-outline{
-    background:var(--white); color:#06C755; border-color:#06C755;
-    padding:12px 10px; font-size:14.5px;
-  }
+  /* กล่องชวนเพิ่มเพื่อน LINE — ทางเลือกสำหรับคนที่ยังไม่อยากกรอก/ส่งรายละเอียดผ่านฟอร์ม แค่อยากเพิ่มเพื่อนไว้ก่อน
+     ตั้งใจให้เด่นเทียบเท่ากล่อง section อื่นๆ (เส้นทึบ+พื้นเขียวอ่อน+ปุ่มพื้นเขียวทึบ .cta.line เดียวกับปุ่มส่งข้อมูลหลัก)
+     ไม่ใช่แค่ข้อความเล็กๆ จางๆ เหมือนเดิม (ร้านขอให้ทำให้เด่นขึ้น) */
   .add-friend-box{
-    text-align:center; margin-bottom:14px; padding:12px 14px;
-    border:2px dashed var(--ink); border-radius:14px; background:var(--white);
+    text-align:center; margin-bottom:14px; padding:16px 16px 18px;
+    border:2.5px solid var(--ink); border-radius:16px; background:var(--green-soft);
   }
   .add-friend-box p{
-    margin:0 0 10px; font-size:12.5px; color:rgba(35,31,32,0.65); line-height:1.5;
+    margin:0 0 12px; font-family:'Kanit',sans-serif; font-weight:500; font-size:14px;
+    color:var(--ink); line-height:1.5;
+  }
+
+  /* หัวข้อใหญ่คั่นก่อนเข้าสู่ขั้นตอนที่ 1/3 — บอกภาพรวมว่าต่อจากนี้คือขั้นตอนตรวจสอบที่อยู่จัดส่ง
+     ใหญ่กว่า .step-label ปกติ (ซึ่งเป็นป้ายกำกับแต่ละขั้นย่อย) ใช้เป็นหัวข้อคั่นส่วนแทน */
+  .flow-heading{
+    font-family:'Kanit',sans-serif; font-weight:600; font-size:18px;
+    color:var(--ink); margin:4px 2px 12px;
   }
 
   .note-preview{
@@ -257,8 +262,10 @@
 
     <div class="add-friend-box">
       <p>กดเพิ่มเพื่อน YOMO ไว้ เพื่อแจ้งข่าวสารและโปรโมชั่นดีๆ ครับ</p>
-      <a class="cta line-outline" id="addFriendBtn" href="#" target="_blank" rel="noopener">➕ เพิ่มเพื่อน LINE ร้าน</a>
+      <a class="cta line" id="addFriendBtn" href="#" target="_blank" rel="noopener">➕ เพิ่มเพื่อน LINE ร้าน</a>
     </div>
+
+    <h2 class="flow-heading">ขั้นตอนการตรวจสอบที่อยู่จัดส่ง</h2>
 
     <section>
       <p class="step-label">ขั้นตอนที่ 1/3 · ที่อยู่จัดส่ง</p>
