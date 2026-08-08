@@ -173,6 +173,8 @@
   }
   /* ใช้ตอนพื้นที่ลูกค้าอยู่นอกระยะจัดส่งจริงของร้าน (เข้มกว่า warn-box ปกติที่แค่เตือนให้โทรเช็ค) */
   .warn-box.danger{ background:var(--red-soft); border-style:solid; color:var(--red); font-weight:500; }
+  /* ใช้ตอนแจ้งข้อมูลเชิงบวก เช่น ที่อยู่ร้านตอนลูกค้าเลือกมารับเอง */
+  .warn-box.success{ background:var(--green-soft); border-style:solid; color:var(--green); font-weight:500; }
   .warn-box a{ color:inherit; font-weight:700; text-decoration:underline; }
 
   /* เมนูแนะนำ — ใช้ style .opt/.tag/.desc เดิมทั้งหมด */
@@ -300,10 +302,15 @@
       <span id="farWarnText"></span>
     </div>
 
+    <div class="warn-box success hidden" id="pickupInfoBox">
+      <span>📍</span>
+      <span id="pickupInfoText"></span>
+    </div>
+
     <section>
-      <p class="step-label">เมนูแนะนำ</p>
-      <p class="menu-hint">นี่คือตัวอย่างชุดเมนูที่ช่วยให้ถึงเกณฑ์ส่งฟรีเท่านั้น</p>
-      <p class="menu-hint">หากมีเมนูที่ต้องการ หรืออยากดูภาพสินค้า กดปุ่มส่งข้อมูลจัดส่งด้านล่างได้เลย</p>
+      <p class="step-label" id="menuSectionLabel">เมนูแนะนำ</p>
+      <p class="menu-hint" id="menuHint1">นี่คือตัวอย่างชุดเมนูที่ช่วยให้ถึงเกณฑ์ส่งฟรีเท่านั้น</p>
+      <p class="menu-hint" id="menuHint2">หากมีเมนูที่ต้องการ หรืออยากดูภาพสินค้า กดปุ่มส่งข้อมูลจัดส่งด้านล่างได้เลย</p>
       <div class="options" id="setList"></div>
     </section>
 
@@ -344,9 +351,12 @@
   // LINE OA ของร้าน — เปลี่ยนได้ถ้าร้านเปลี่ยนบัญชี ใช้เปิดแชทพร้อมข้อความสรุปจัดส่งให้อัตโนมัติ
   var LINE_OA_ID = "@002simug";
 
-  // พิกัดร้าน ใช้คำนวณระยะทางเมื่อลูกค้ากดปุ่ม "ใช้ตำแหน่งปัจจุบัน"
+  // พิกัดร้าน ใช้คำนวณระยะทางเมื่อลูกค้ากดปุ่ม "ใช้ตำแหน่งปัจจุบัน" และใช้ทำลิงก์แผนที่ตอนลูกค้าเลือกมารับเอง
   var SHOP_LAT = 13.778685908650033;
   var SHOP_LNG = 100.4892634246037;
+  // ที่อยู่ร้านแบบข้อความ (ไม่บังคับ) โชว่คู่กับลิงก์แผนที่ตอนลูกค้าเลือก "มารับเองที่ร้าน" — ถ้าเว้นว่างไว้จะโชว่แค่ลิงก์แผนที่อย่างเดียว
+  var SHOP_ADDRESS = "";
+  var SHOP_MAP_URL = "https://www.google.com/maps?q=" + SHOP_LAT + "," + SHOP_LNG;
 
   // API key ฟรีจาก OpenRouteService (openrouteservice.org) ใช้คำนวณระยะทางถนนจริง — คีย์นี้เป็น free tier
   // ไม่ผูกบัตรเครดิต เห็นได้ในโค้ดสาธารณะโดยตั้งใจ (เว็บนี้เป็น static site ไม่มี backend ให้ซ่อนคีย์)
@@ -419,6 +429,11 @@
   var optionsBox    = document.getElementById("optionsBox");
   var farWarn       = document.getElementById("farWarn");
   var farWarnText   = document.getElementById("farWarnText");
+  var pickupInfoBox  = document.getElementById("pickupInfoBox");
+  var pickupInfoText = document.getElementById("pickupInfoText");
+  var menuSectionLabel = document.getElementById("menuSectionLabel");
+  var menuHint1     = document.getElementById("menuHint1");
+  var menuHint2     = document.getElementById("menuHint2");
   var outOfRangeWarn     = document.getElementById("outOfRangeWarn");
   var outOfRangeWarnText = document.getElementById("outOfRangeWarnText");
   var nameInput     = document.getElementById("nameInput");
@@ -700,8 +715,26 @@
       farWarn.classList.add("hidden");
     }
 
+    // ตอนเลือก "มารับเองที่ร้าน" ไม่มีค่าส่ง/ยอดขั้นต่ำให้อ้างอิงแล้ว การ์ดเซ็ทแนะนำที่อิงเกณฑ์ฟรีส่ง (ถึงฟรีส่งโซนนี้/ยังไม่ถึง)
+    // จึงไม่มีความหมาย — เปลี่ยนเป็นข้อความชวนสั่งเมนูอะไรก็ได้ตามใจ พร้อมโชว่ที่อยู่/ลิงก์แผนที่ร้านแทน
+    if (fulfillment === "pickup") {
+      pickupInfoBox.classList.remove("hidden");
+      var addressPart = SHOP_ADDRESS ? SHOP_ADDRESS + " — " : "";
+      pickupInfoText.innerHTML = addressPart + '<a href="' + SHOP_MAP_URL + '" target="_blank" rel="noopener">เปิดแผนที่ไปยังร้าน</a>';
+
+      menuSectionLabel.textContent = "สั่งเมนูอะไรก็ได้เลย";
+      menuHint1.textContent = "มารับเองที่ร้านไม่มีขั้นต่ำ อยากได้เมนูไหนสั่งได้ตามใจเลย";
+      menuHint2.textContent = "ดูเมนูทั้งหมด/รูปสินค้า หรือสั่งเลย ทักแชทร้านทาง LINE ได้เลย";
+      setList.innerHTML = "";
+    } else {
+      pickupInfoBox.classList.add("hidden");
+      menuSectionLabel.textContent = "เมนูแนะนำ";
+      menuHint1.textContent = "นี่คือตัวอย่างชุดเมนูที่ช่วยให้ถึงเกณฑ์ส่งฟรีเท่านั้น";
+      menuHint2.textContent = "หากมีเมนูที่ต้องการ หรืออยากดูภาพสินค้า กดปุ่มส่งข้อมูลจัดส่งด้านล่างได้เลย";
+      renderSetList();
+    }
+
     updateSummary(zone);
-    renderSetList();
   }
 
   function updateSummary(zone) {
