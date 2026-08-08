@@ -15,7 +15,7 @@
 
 ```js
 var ZONES = [
-  { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 150, feeMin: 38, feeMax: 50, minKm: 0, maxKm: 1 },
+  { label: "0-1 กม. (ในหมู่บ้าน)", threshold: 160, feeMin: 38, feeMax: 50, minKm: 0, maxKm: 1 },
   { label: "1-3 กม.",              threshold: 190, feeMin: 50, feeMax: 65, minKm: 1, maxKm: 3 },
   { label: "3-5 กม.",              threshold: 250, feeMin: 65, feeMax: 90, minKm: 3, maxKm: 5 },
   { label: "5-10 กม.",             threshold: 340, feeMin: 90, feeMax: null, minKm: 5, maxKm: 10,
